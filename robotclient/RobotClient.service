@@ -1,0 +1,19 @@
+[Unit]
+Description= RobotClient
+[Service]
+WorkingDirectory=/home/dzungapr6th/Desktop/RobotClient/bin
+#Restart=always
+# Restart service after 10 seconds if the dotnet service crashes:
+#RestartSec=10
+# KillSignal=SIGINT
+SyslogIdentifier=ROBOTCLIENT_LOG
+User=dzungapr6th
+Environment=DOTNET_ROOT=/home/dzungapr6th/dotnet
+Environment=ROS_DOMAIN_ID=123
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=PATH=/home/dzungapr6th/dotnet:%h/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+Environment=LD_LIBRARY_PATH=/opt/ros/humble/lib:/home/dzungapr6th/Desktop/Ros2_WrapPackage/RobotWrapper/build/CollectRosData:/home/dzungapr6th/Desktop/Ros2_WrapPackage/RobotWrapper/build/ControlWrapper:$LD_LIBRARY_PATH
+# Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+ExecStart=/bin/bash -lc 'source /opt/ros/humble/setup.bash && dotnet /home/dzungapr6th/Desktop/RobotClient/bin/RobotClientSharp.dll'
+[Install]
+WantedBy=multi-user.target

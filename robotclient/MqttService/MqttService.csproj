@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Disruptor" Version="6.0.1" />
+    <PackageReference Include="MQTTnet" Version="5.0.1.1416" />
+    <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="4.3.7.1207" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\sharelibrary\CommonLib\CommonLib.csproj" />
+    <ProjectReference Include="..\..\sharelibrary\VDA5050Message\VDA5050Message.csproj" />
+    <ProjectReference Include="..\ConfigApp\ConfigApp.csproj" />
+    <ProjectReference Include="..\LocalMemory\LocalMemory.csproj" />
+    <ProjectReference Include="..\RosNodeWrapper\RosNodeWrapper.csproj" />
+  </ItemGroup>
+</Project>

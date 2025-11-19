@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NLog" Version="6.0.5" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="6.0.5" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\sharelibrary\CommonLib\CommonLib.csproj" />
+    <ProjectReference Include="..\..\sharelibrary\VDA5050Message\VDA5050Message.csproj" />
+    <ProjectReference Include="..\ConfigApp\ConfigApp.csproj" />
+    <ProjectReference Include="..\MqttService\MqttService.csproj" />
+    <ProjectReference Include="..\RosNodeWrapper\RosNodeWrapper.csproj" />
+  </ItemGroup>
+
+</Project>
