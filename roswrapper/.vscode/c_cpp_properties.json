@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/install/include",
+                "${workspaceFolder}/build/**",
+                "/opt/ros/humble/include/**",
+                "/opt/ros/humble/include",
+                "/opt/ros/humble/share/**",
+                "/usr/include/**",
+                "/usr/local/include/**",
+                "/opt/ros/humble/include/rclcpp",
+                "${workspaceFolder}/install/vda5050_msgs/include/**"
+            ],
+            "defines": [],
+            "cStandard": "c17",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-clang-x64"
+        }
+    ],
+    "version": 4
+}

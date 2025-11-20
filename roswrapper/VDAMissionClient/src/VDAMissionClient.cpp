@@ -1,18 +1,21 @@
+
 #include "VDAMissionClient/VDAMissionClient.hpp"
 
 using GoalHandleNTP = rclcpp_action::ClientGoalHandle<NavigateThroughPoses>;
 VDAMissionClient::VDAMissionClient() : Node("vda_miss_client_node")
 {
-    rclcpp_action::Client<NavigateThroughPoses>::SharedPtr client_;
+    _client = rclcpp_action::create_client<NavigateThroughPoses>(this, "/navigate_through_poses");
+    //_odom_sub = this->create_subscription<nav_msgs::msg::Odometry>(this, "/odom", rclcpp::SensorDataQoS(), std::bind);
+    
 }
 
 bool VDAMissionClient::RunThroughPoses(const std::vector<geometry_msgs::msg::PoseStamped> &poses)
 {
     NavigateThroughPoses::Goal goalMsg;
     goalMsg.poses = poses;
-    if (!client_->wait_for_action_server(std::chrono::seconds(10)))
+    if (!_client->wait_for_action_server(std::chrono::seconds(10)))
     {
-        RCLCPP_ERROR(get_logger(), "Action server 'navigate_through_poses' not available after waiting");
+        RCLCPP_ERROR(this->get_logger(), "Action server 'navigate_through_poses' not available after waiting");
         return false;
     }
 
@@ -48,7 +51,7 @@ bool VDAMissionClient::RunThroughPoses(const std::vector<geometry_msgs::msg::Pos
         switch (result.code)
         {
         case rclcpp_action::ResultCode::SUCCEEDED:
-            RCLCPP_INFO(this->get_logger(), "Navigation succeeded ✅");
+            RCLCPP_INFO(this->get_logger(), "Navigation succeeded");
             break;
         case rclcpp_action::ResultCode::ABORTED:
             RCLCPP_ERROR(this->get_logger(), "Navigation aborted");
@@ -63,7 +66,7 @@ bool VDAMissionClient::RunThroughPoses(const std::vector<geometry_msgs::msg::Pos
     };
 
     RCLCPP_INFO(get_logger(), "Sending goal with %zu poses...", poses.size());
-    client_->async_send_goal(goal, opts);
+    _client->async_send_goal(goal, opts);
     return true;
 }
 

@@ -5,6 +5,21 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+set(example_handler_dependencies
+  rclcpp
+  rclcpp_action
+  rclcpp_components
+  vda5050_msgs
+  std_srvs
+  geometry_msgs
+  nav_msgs
+  nav2_msgs
+  tf2_geometry_msgs
+  lifecycle_msgs
+  sensor_msgs
+)
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
