@@ -1,4 +1,8 @@
-# robotics-with-isaac
+# Robot Client
+This repo is C# project for robot. It will connect to Mqtt broker and subscribe to topic of vda5050.
 
-this is my project control multi AMR in Isaac. Simulate in isaac, control robot follow VDA5050. 
-Demo in this link https://youtu.be/k3J6fOPTI2I
+# Build and run
+
+Build this project to in linux-x64 or arm64 depend on your robot. Remember to change ROS_DOMAIN, LD_LIBRARY_PATH. LD_LIBRARY_PATH is the path of build and install file of VDAMissionClient  Project.
+
+# Config for Robot
