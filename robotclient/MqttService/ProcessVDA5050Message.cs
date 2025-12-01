@@ -27,7 +27,7 @@ namespace MqttService
 
         }
 
-        public void ProcessConnection(Connection connection, string clientId)
+        public void ProcessConnection(Connection? connection, string clientId)
         {
             if (connection == null)
             {
@@ -36,6 +36,12 @@ namespace MqttService
 
 
             //handle connection
+        }
+
+        public void PocessIntantActions(InstantActions? instanceActions)
+        {
+
+
         }
     }
 }
