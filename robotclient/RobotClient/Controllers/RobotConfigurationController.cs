@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Entity.Api;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace RobotClient.Controllers
@@ -7,18 +8,18 @@ namespace RobotClient.Controllers
     [Route("robot-configuration")]
     public class RobotConfigurationController : ControllerBase
     {
-        [HttpPost("vda5050")]
-        public Task<IActionResult> ConfigVDA()
+        [HttpPost("vda5050-topic")]
+        public async Task<IActionResult> ConfigVDA([FromBody] RobotSettingsRequest request)
         {
-            return Ok(new object()
-            {
-                
-            });
+            SettingResponse response = new SettingResponse();
+            return Ok(response);
         }
 
-        public Task<IActionResult> ConfigMqtt()
+        [HttpPost("vda5050-network")]
+        public async Task<IActionResult> ConfigMqtt([FromBody]MqttSettingRequest request)
         {
-            return Ok(new object());
+            SettingResponse response = new SettingResponse();
+            return Ok(response);
         }
 
     }
