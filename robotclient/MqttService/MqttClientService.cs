@@ -14,31 +14,36 @@ namespace MqttService
     {
         private readonly MqttClientFactory _mqttClientFactory;
         private readonly IMqttClient _mqttClient;
-        private readonly MqttClientOptions mqttOptions;
+        private MqttClientOptions? _mqttOptions;
         protected readonly JsonSerializerOptions _jsonSerializerOptions;
-        private Thread _threadReceiveMessage;
+        private Thread? _threadReceiveMessage;
         private ProcessVDA5050Message _processVDAMsg;
-        private string _topicRobotLevel;
+        private string? _topicRobotLevel;
         public MqttClientService()
         {
             _mqttClientFactory = new MqttClientFactory();
             _mqttClient = _mqttClient = _mqttClientFactory.CreateMqttClient();
             _jsonSerializerOptions = Common.CamelCaseSerialization;
-            IPEndPoint endpoints = IPEndPoint.Parse(ConfigData.MqttConfig.Endpoint);
+            _processVDAMsg = new ProcessVDA5050Message();
+        }
+
+        public async Task ConnectToBroker()
+        {
+            IPEndPoint endpoints = IPEndPoint.Parse($"{ShareMemoryData.RobotConfiguration.IP}:{ShareMemoryData.RobotConfiguration.Port}");
+            _mqttOptions = new MqttClientOptionsBuilder().WithClientId(ConfigData.MqttClientId).WithEndPoint(endpoints).WithWillTopic("").Build();
             _topicRobotLevel = $"{ShareMemoryData.RobotConfiguration.InterfaceName}/{ShareMemoryData.RobotConfiguration.MajorVersion}/{ShareMemoryData.RobotConfiguration.Manufacturer}/{ShareMemoryData.RobotConfiguration.SerialNumber}";
             var topics = new[]
             {
                 $"{_topicRobotLevel}/{ConstData.Mqtt.Topic.ORDER}",
                 $"{_topicRobotLevel}/{ConstData.Mqtt.Topic.INSTANTACTIONS}",
             };
-            mqttOptions = new MqttClientOptionsBuilder().WithClientId(ConfigData.MqttConfig.ClientId).WithEndPoint(endpoints).WithWillTopic("").Build();
+            await _mqttClient.ConnectAsync(_mqttOptions);
             foreach (var topic in topics)
             {
-                _mqttClient.SubscribeAsync(topic).RunSynchronously();
+                await _mqttClient.SubscribeAsync(topic);
                 CommonLog.log.Info($"Subscribed to: {topic}");
             }
         }
-
 
         public void StartReceiveMessage()
         {

@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using ConfigApp;
+using System.Runtime.InteropServices;
 using System.Text;
 using VDA5050Message;
 
@@ -9,15 +10,15 @@ namespace RosNodeWrapper
         private IntPtr _nodeVDA;
         [DllImport("libVDAMissionClient.so")]
         public static extern void InitEnviroment();
-        [DllImport("libVDAMissionClient.so")]
-        private static extern IntPtr CreateVDANode();
+        [DllImport("libVDAMissionClient.so", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr CreateVDANode(string robotNamespace);
 
 
         [DllImport("libVDAMissionClient.so")]
         private static extern bool RunThroughPoses(IntPtr nodePtr, double[] xs, double[] ys, int n, double theta_final_rad, byte[] order_id);
         public VDARosClient()
         {
-            _nodeVDA = CreateVDANode();
+            _nodeVDA = CreateVDANode(ConfigData.RosNamespace);
         }
 
 

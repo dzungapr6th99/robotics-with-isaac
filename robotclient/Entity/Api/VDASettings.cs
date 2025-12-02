@@ -3,7 +3,7 @@
     /// <summary>
     /// Settings for robot, can be fix from api
     /// </summary>
-    public class RobotSettingsRequest
+    public class VDASettingsRequest
     {
         #region VDA5050 config
         public string? InterfaceName { get; set; }

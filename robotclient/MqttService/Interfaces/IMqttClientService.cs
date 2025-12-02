@@ -8,5 +8,7 @@ namespace MqttService.Interfaces
 {
     public interface IMqttClientService
     {
+        public Task ConnectToBroker();
+        void StartReceiveMessage();
     }
 }

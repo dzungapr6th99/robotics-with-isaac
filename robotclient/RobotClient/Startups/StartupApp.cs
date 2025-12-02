@@ -1,4 +1,5 @@
 ﻿
+using MqttService;
 using MqttService.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace RobotClient.Startups
     {
         public static void InitServices(IServiceCollection services)
         {
-            services.AddSingleton<IMqttClientService, IMqttClientService>();
+            services.AddSingleton<IMqttClientService, MqttClientService>();
         }
     }
 }
