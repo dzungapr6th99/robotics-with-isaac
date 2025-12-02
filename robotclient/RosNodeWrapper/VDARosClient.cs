@@ -18,7 +18,8 @@ namespace RosNodeWrapper
         private static extern bool RunThroughPoses(IntPtr nodePtr, double[] xs, double[] ys, int n, double theta_final_rad, byte[] order_id);
         public VDARosClient()
         {
-            _nodeVDA = CreateVDANode(ConfigData.RosNamespace);
+
+            //_nodeVDA = CreateVDANode(ConfigData.RosNamespace);
         }
 
 

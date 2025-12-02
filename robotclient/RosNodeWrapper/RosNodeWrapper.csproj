@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\sharelibrary\CommonLib\CommonLib.csproj" />
     <ProjectReference Include="..\..\sharelibrary\VDA5050Message\VDA5050Message.csproj" />
+    <ProjectReference Include="..\ConfigApp\ConfigApp.csproj" />
   </ItemGroup>
 
 </Project>
