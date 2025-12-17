@@ -17,9 +17,11 @@ namespace RobotClient.Worker
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
+#if !DEBUG
             VDARosClient.InitEnviroment();
             await _mqttService.ConnectToBroker();
             _mqttService.StartReceiveMessage();
+#endif
             await base.StartAsync(cancellationToken);
             return;
         }

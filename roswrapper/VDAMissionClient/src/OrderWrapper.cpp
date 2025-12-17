@@ -1,5 +1,6 @@
 #include "VDA5050Wrapper/OrderWrapper.hpp"
-
+#include <rclcpp/rclcpp.hpp>
+#include <vector>
 using Node = vda5050_msgs::msg::Node;
 using Edge = vda5050_msgs::msg::Edge;
 OrderWrapper::OrderWrapper()
@@ -12,84 +13,52 @@ OrderWrapper::~OrderWrapper()
 
 extern "C"
 {
-    void Order_SetHeaderId(OrderWrapper *orderWrapper, int32_t headerId)
+    RCLCPP_EXPORT void Order_SetHeaderId(OrderWrapper *orderWrapper, int32_t headerId)
     {
         orderWrapper->entity.header_id = headerId;
     }
 
-    void Order_SetTimeStamp(OrderWrapper *OrderWrapper, const char *data, int length)
-    {
-        if (!data || length < 0)
-        {
-            return;
-        }
-        OrderWrapper->entity.timestamp.assign(data, length);
+    RCLCPP_EXPORT void Order_SetTimeStamp(OrderWrapper *OrderWrapper, const char *data)
+    {        
+        OrderWrapper->entity.timestamp = data ? data : "";
     }
 
-    void Order_SetVersion(OrderWrapper *OrderWrapper, const char *data, int length)
+    RCLCPP_EXPORT void Order_SetVersion(OrderWrapper *OrderWrapper, const char *data)
     {
-        if (!data || length < 0)
-        {
-            return;
-        }
-        OrderWrapper->entity.version.assign(data, length);
+        OrderWrapper->entity.version = data ? data : "";
     }
 
-    void Order_SetManufacture(OrderWrapper *OrderWrapper, const char *data, int length)
+    RCLCPP_EXPORT void Order_SetManufacture(OrderWrapper *OrderWrapper, const char *data)
     {
-        if (!data || length < 0)
-        {
-            return;
-        }
-        OrderWrapper->entity.manufacturer.assign(data, length);
+        OrderWrapper->entity.manufacturer = data ? data : "";
     }
 
-    void Order_SetSerialNumber(OrderWrapper *OrderWrapper, const char *data, int length)
+    RCLCPP_EXPORT void Order_SetSerialNumber(OrderWrapper *OrderWrapper, const char *data)
     {
-        if (!data || length < 0)
-        {
-            return;
-        }
-        OrderWrapper->entity.serial_number.assign(data, length);
+        OrderWrapper->entity.serial_number = data ? data : "";
     }
 
-    void Order_SetOrderId(OrderWrapper *OrderWrapper, const char *data, int length)
-    {
-        if (!data || length < 0)
-        {
-            return;
-        }
-        OrderWrapper->entity.order_id.assign(data, length);
+    RCLCPP_EXPORT void Order_SetOrderId(OrderWrapper *OrderWrapper, const char *data)
+    {       
+        OrderWrapper->entity.order_id = data ? data : "";
     }
-    void Order_SetOrderUpdateId(OrderWrapper *orderWrapper, int32_t headerId)
+    RCLCPP_EXPORT void Order_SetOrderUpdateId(OrderWrapper *orderWrapper, uint32_t headerId)
     {
         orderWrapper->entity.order_update_id = headerId;
     }
 
-    void Order_SetZoneSetId(OrderWrapper *OrderWrapper, const char *data, int length)
+    RCLCPP_EXPORT void Order_SetZoneSetId(OrderWrapper *OrderWrapper, const char *data)
     {
-        if (!data || length < 0)
-        {
-            return;
-        }
-        OrderWrapper->entity.zone_set_id.assign(data, length);
+        OrderWrapper->entity.zone_set_id = data ? data : "";
     }
 
-    void Order_SetNodes(OrderWrapper *OrderWrapper, const Node *data, int length)
+    RCLCPP_EXPORT void Order_SetNodes(OrderWrapper *OrderWrapper, const Node *data, int length)
     {
-        if (!data || length < 0)
-        {
-            return;
-        }
         OrderWrapper->entity.nodes = std::vector<Node>(data, data + length);
     }
 
-    void Order_SetEgdes(OrderWrapper *OrderWrapper, const Edge *data, int length)
+    RCLCPP_EXPORT void Order_SetEgdes(OrderWrapper *OrderWrapper, const Edge *data, int length)
     {
-          if (!data || length < 0)
-        {
-            return;
-        }
         OrderWrapper->entity.edges = std::vector<Edge>(data, data + length);
     }
 }

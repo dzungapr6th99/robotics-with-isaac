@@ -60,6 +60,8 @@ namespace MqttService
                 {
                     string message = Encoding.ASCII.GetString(e.ApplicationMessage.Payload);
                     List<string> topicLevel = e.ApplicationMessage.Topic.Split('/').ToList();
+                    
+                        
                     string topic = topicLevel.Last();
                     ProcessMessage(topic, e.ClientId, message);
                     return Task.CompletedTask;

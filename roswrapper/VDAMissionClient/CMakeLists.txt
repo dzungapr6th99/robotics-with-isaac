@@ -26,12 +26,36 @@ find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav2_msgs REQUIRED)
 find_package(rclcpp_action REQUIRED)
+find_package(vda5050_msgs REQUIRED)
 
 
 # Build share library
-add_library(VDAMissionClient SHARED src/VDAMissionClient.cpp)
+add_library(VDAMissionClient SHARED
+  src/VDAMissionClient.cpp
+  src/OrderWrapper.cpp
+  src/InstantActionsWrapper.cpp
+  src/NodeWrapper.cpp
+  src/EdgeWrapper.cpp
+  src/ActionWrapper.cpp
+  src/NodePositionWrapper.cpp
+  src/ActionParameterWrapper.cpp
+  src/ControlPointWrapper.cpp
+  src/TrajectoryWrapper.cpp
+  src/FactsheetWrapper.cpp
+  src/AGVStateWrapper.cpp
+  src/VisualizationWrapper.cpp
+  src/AGVPositionWrapper.cpp
+  src/VelocityWrapper.cpp
+  src/TypeSpecificationWrapper.cpp
+  src/PhysicalParametersWrapper.cpp
+  src/BatteryStateWrapper.cpp
+  src/SafetyStateWrapper.cpp
+  src/NodeStateWrapper.cpp
+  src/EdgeStateWrapper.cpp
+  src/ActionStateWrapper.cpp
+)
 
-ament_target_dependencies(VDAMissionClient rclcpp geometry_msgs nav2_msgs rclcpp_action)
+ament_target_dependencies(VDAMissionClient rclcpp geometry_msgs nav2_msgs rclcpp_action vda5050_msgs)
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

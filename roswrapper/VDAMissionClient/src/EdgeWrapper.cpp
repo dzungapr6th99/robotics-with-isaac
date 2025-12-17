@@ -1,6 +1,9 @@
 #include "VDA5050Wrapper/EdgeWrapper.hpp"
-
+#include "rclcpp/rclcpp.hpp"
+#include <vector>
+#include <vda5050_msgs/msg/trajectory.hpp>
 using Action = vda5050_msgs::msg::Action;
+using Trajectory = vda5050_msgs::msg::Trajectory;
 EdgeWrapper::EdgeWrapper()
 {
 }
@@ -11,83 +14,88 @@ EdgeWrapper::~EdgeWrapper()
 
 extern "C"
 {
-    void Edge_SetEdgeId(EdgeWrapper *edgeWrapper, const char *data, int length)
+    RCLCPP_EXPORT void Edge_SetEdgeId(EdgeWrapper *edgeWrapper, const char *data)
     {
-        edgeWrapper->entity.edge_id.assign(data, length);
+        edgeWrapper->entity.edge_id = data ? data : "";
     }
 
-    void Edge_SetSequenceId(EdgeWrapper *edgeWrapper, uint32_t sequenceId)
+    RCLCPP_EXPORT void Edge_SetSequenceId(EdgeWrapper *edgeWrapper, uint32_t sequenceId)
     {
         edgeWrapper->entity.sequence_id = sequenceId;
     }
 
-    void Edge_SetDescription(EdgeWrapper *edgeWrapper, const char *data, int length)
+    RCLCPP_EXPORT void Edge_SetDescription(EdgeWrapper *edgeWrapper, const char *data)
     {
-        edgeWrapper->entity.edge_description.assign(data, length);
+        edgeWrapper->entity.edge_description  = data ? data : "";
     }
 
-    void Edge_SetRelease(EdgeWrapper *edgeWrapper, bool data)
+    RCLCPP_EXPORT void Edge_SetRelease(EdgeWrapper *edgeWrapper, bool data)
     {
         edgeWrapper->entity.released = data;
     }
 
-    void Edge_SetStartNodeId(EdgeWrapper *edgeWrapper, char *data, int length)
+    RCLCPP_EXPORT void Edge_SetStartNodeId(EdgeWrapper *edgeWrapper, char *data)
     {
-        edgeWrapper->entity.start_node_id.assign(data, length);
+        edgeWrapper->entity.start_node_id  = data ? data : "";
     }
 
-    void Edge_SetEndNodeId(EdgeWrapper *edgeWrapper, char *data, int length)
+    RCLCPP_EXPORT void Edge_SetEndNodeId(EdgeWrapper *edgeWrapper, char *data)
     {
-        edgeWrapper->entity.end_node_id.assign(data, length);
+        edgeWrapper->entity.end_node_id = data ? data : "";
     }
 
-    void Edge_SetMaxSpeed(EdgeWrapper *edgeWrapper, double data)
+    RCLCPP_EXPORT void Edge_SetMaxSpeed(EdgeWrapper *edgeWrapper, double data)
     {
         edgeWrapper->entity.max_speed = data;
     }
 
-    void Edge_SetMaxHeight(EdgeWrapper *edgeWrapper, double data)
+    RCLCPP_EXPORT void Edge_SetMaxHeight(EdgeWrapper *edgeWrapper, double data)
     {
         edgeWrapper->entity.max_height = data;
     }
 
-    void Edge_SetMinHeight(EdgeWrapper *edgeWrapper, double minHeight)
+    RCLCPP_EXPORT void Edge_SetMinHeight(EdgeWrapper *edgeWrapper, double minHeight)
     {
         edgeWrapper->entity.min_height = minHeight;
     }
 
-    void Edge_SetOrentation(EdgeWrapper *edgeWrapper, double data)
+    RCLCPP_EXPORT void Edge_SetOrentation(EdgeWrapper *edgeWrapper, double data)
     {
         edgeWrapper->entity.orientation = data;
     }
 
-    void Edge_SetOrientiationType(EdgeWrapper *edgeWrapper, char *data, int length)
+    RCLCPP_EXPORT void Edge_SetOrientiationType(EdgeWrapper *edgeWrapper, char *data)
     {
-        edgeWrapper->entity.orientation_type.assign(data, length);
+        edgeWrapper->entity.orientation_type = data ? data : "";
     }
 
-    void Edge_SetDirection(EdgeWrapper *edgeWrapper, char *data, int length)
+    RCLCPP_EXPORT void Edge_SetDirection(EdgeWrapper *edgeWrapper, char *data)
     {
-        edgeWrapper->entity.direction.assign(data, length);
+        edgeWrapper->entity.direction  = data ? data : "";
     }
 
-    void Edge_SetRotationAllowed(EdgeWrapper *edgeWrapper, bool data)
+    RCLCPP_EXPORT void Edge_SetRotationAllowed(EdgeWrapper *edgeWrapper, bool data)
     {
         edgeWrapper->entity.rotation_allowed = data;
     }
 
-    void Edge_SetMaxRotationSpeed(EdgeWrapper *edgeWrapper, double data)
+    RCLCPP_EXPORT void Edge_SetMaxRotationSpeed(EdgeWrapper *edgeWrapper, double data)
     {
         edgeWrapper->entity.max_rotation_speed = data;
     }
 
-    void Edge_SetLength(EdgeWrapper *edgeWrapper, double data)
+    RCLCPP_EXPORT void Edge_SetLength(EdgeWrapper *edgeWrapper, double data)
     {
         edgeWrapper->entity.length = data;
     }
 
-     void Edge_SetAction(EdgeWrapper* edgeWrapper, const Action* actions, int length)
+    RCLCPP_EXPORT void Edge_SetTrajectory(EdgeWrapper *edgeWrapper, const Trajectory *trajectory)
     {
-        edgeWrapper->entity.actions = std::vector<Action>(actions, actions + length);
+        edgeWrapper->entity.trajectory = trajectory ? *trajectory : Trajectory();
+    }
+
+    RCLCPP_EXPORT void Edge_SetAction(EdgeWrapper *edgeWrapper, const Action *actions, int length)
+    {
+        edgeWrapper->entity.actions = std::vector<Action>(actions, actions+ length);
     }
 }
