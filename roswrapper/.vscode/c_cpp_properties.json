@@ -4,7 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/install/include",
+                "${workspaceFolder}/install/include/**",
                 "${workspaceFolder}/build/**",
                 "/opt/ros/humble/include/**",
                 "/opt/ros/humble/include",
@@ -12,7 +12,7 @@
                 "/usr/include/**",
                 "/usr/local/include/**",
                 "/opt/ros/humble/include/rclcpp",
-                "${workspaceFolder}/install/vda5050_msgs/include/**"
+                "${workspaceFolder}/install/vda5050_msgs/include/vda5050_msgs/**"
             ],
             "defines": [],
             "cStandard": "c17",

@@ -2,15 +2,19 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <lifecycle_msgs/srv/get_state.hpp>
 #include <nav2_msgs/action/navigate_through_poses.hpp>
 #include <nav_msgs/msg/odometry.hpp>
+#include <sensor_msgs/msg/battery_state.hpp>
 #include <std_msgs/msg/string.hpp>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
 #include <memory>
 #include <vector>
 #include <cmath>
-#include <vda5050_msgs/msg/agv_state.h>
+#include <pluginlib/class_loader.hpp>
+#include <logging.hpp>
+#include "VDAMissionClient/Vda5050ActionHandlerBase.hpp"
 #include "vda5050_msgs/msg/error.hpp"
 #include "vda5050_msgs/msg/order.hpp"
 #include "vda5050_msgs/msg/action.hpp"
@@ -22,7 +26,7 @@
 #include "vda5050_msgs/msg/edge_state.hpp"
 #include "vda5050_msgs/msg/instant_actions.hpp"
 #include "vda5050_msgs/msg/factsheet.hpp"
-
+class Vda5050ActionHandlerBase;
 class VDAMissionClient : public rclcpp::Node
 {
 public:
@@ -67,6 +71,14 @@ public:
         const ResultType &result,
         const bool &success,
         const std::string &description);
+    void AddError(const vda5050_msgs::msg::Error &error);
+
+    /*public parameters*/
+public:
+    vda5050_msgs::msg::Error CreateError(
+        ErrorLevel level, const std::string &error_msg,
+        const std::vector<std::pair<std::string, std::string>> &error_refs,
+        const std::string &error_type = "");
 
     /* private parameters */
 private:
@@ -83,10 +95,11 @@ private:
     // Subscribers
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odometry_sub_;
 
+    rclcpp::Client<lifecycle_msgs::srv::GetState>::SharedPtr status_check_client_;
     // Action clients
     rclcpp_action::Client<NavThroughPoses>::SharedPtr client_ptr_;
     GoalHandleNavThroughPoses::SharedPtr nav_goal_handle_;
-
+    rclcpp_action::Client<NavThroughPoses>::SendGoalOptions send_goal_options;
     // Mutex to protect private member variables when they are read or written to
     std::mutex state_mutex_;
 
@@ -121,7 +134,19 @@ private:
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
     ClientState client_state_;
 
+    std::unordered_map<std::string, std::shared_ptr<Vda5050ActionHandlerBase>> action_handler_map_;
+    pluginlib::ClassLoader<Vda5050ActionHandlerBase> action_handler_loader_;
+
 private:
+    // Publish a vda5050_msgs/AGVState based on the current state of the robot
+    void PublishRobotState();
+    // Publish a vda5050_msgs/Factsheet based on the robot's sepcifications
+    void PublishRobotFactsheet();
+    // Timer callback function to publish a vda5050_msgs/AGVState message
+    void StateTimerCallback();
+    // The callback function when the node receives a vda5050_msgs/Order message and processes it
+    void OrderCallback(const vda5050_msgs::msg::Order::ConstSharedPtr msg);
+    // Execute order callback
     void ExecuteOrderCallback();
     // Function that creates the NavigateThroughPoses goal message for Nav2 and sends that goal
     // asynchronously
@@ -131,9 +156,15 @@ private:
     void ExecuteAction(const vda5050_msgs::msg::Action &vda5050_action);
     // Initialization the order state once received a new order
     void InitAGVState();
+    // The callback function when the node receives a sensor_msgs/BatteryState message and processes
+    // it into a VDA5050 BatteryState message
+    void BatteryStateCallback(const sensor_msgs::msg::BatteryState::ConstSharedPtr msg);
     // The callback function when the node receives a nav_msgs/Odometry message and appends it's
     // velotity to the status message's velocity that gets published
     void OdometryCallback(const nav_msgs::msg::Odometry::ConstSharedPtr msg);
+    // The callback function when the node receives a std_msgs/String info message and appends it to
+    // the status message that gets published
+    void InfoCallback(const std_msgs::msg::String::ConstSharedPtr msg);
     // Timer callback function to publish a std_msgs/String message containing the order_id
     void OrderIdCallback();
     // Goal response callback for NavigateThroughPoses goal message
@@ -152,6 +183,8 @@ private:
     void TeleopActionHandler(const vda5050_msgs::msg::Action &teleop_action);
     // Handle factsheet instant actions
     void FactsheetRequestHandler(const vda5050_msgs::msg::Action &factsheet_request);
+    // The callback function when the node receives an order error message.
+    void OrderValidErrorCallback(const std_msgs::msg::String::ConstSharedPtr msg);
     // Sync service request. Return request result
     template <typename ServiceT>
     typename ServiceT::Response::SharedPtr SendServiceRequest(
