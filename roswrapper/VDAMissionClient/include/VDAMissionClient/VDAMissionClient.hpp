@@ -13,7 +13,6 @@
 #include <vector>
 #include <cmath>
 #include <pluginlib/class_loader.hpp>
-#include <logging.hpp>
 #include "VDAMissionClient/Vda5050ActionHandlerBase.hpp"
 #include "vda5050_msgs/msg/error.hpp"
 #include "vda5050_msgs/msg/order.hpp"
@@ -29,13 +28,15 @@
 class Vda5050ActionHandlerBase;
 class VDAMissionClient : public rclcpp::Node
 {
+
 public:
     using NavThroughPoses = nav2_msgs::action::NavigateThroughPoses;
     using GoalHandleNavThroughPoses = rclcpp_action::ClientGoalHandle<NavThroughPoses>;
     using NavClient = rclcpp_action::Client<NavThroughPoses>;
     using NavCancelResponse = NavClient::CancelResponse;
-
     using VDAActionState = vda5050_msgs::msg::ActionState;
+    const std::string kValidationError = "validationError";
+    const std::string kOrderUpdateError = "orderUpdateError";
     enum ErrorLevel
     {
         WARNING,
@@ -47,10 +48,9 @@ public:
         RUNNING,
         PAUSED
     };
-
     /* public function*/
 public:
-    VDAMissionClient();
+    explicit VDAMissionClient();
     ~VDAMissionClient();
     bool RunThroughPoses(const std::vector<geometry_msgs::msg::PoseStamped> &poses);
     void UpdateActionState(
@@ -71,14 +71,17 @@ public:
         const ResultType &result,
         const bool &success,
         const std::string &description);
-    void AddError(const vda5050_msgs::msg::Error &error);
 
-    /*public parameters*/
-public:
+    std::vector<vda5050_msgs::msg::ErrorReference> CreateErrorReferenceList(
+        const std::vector<std::pair<std::string, std::string>> &error_refs);
+
+    // Create an error message
     vda5050_msgs::msg::Error CreateError(
         ErrorLevel level, const std::string &error_msg,
         const std::vector<std::pair<std::string, std::string>> &error_refs,
         const std::string &error_type = "");
+    // Add error to the agv_state_
+    void AddError(const vda5050_msgs::msg::Error &error);
 
     /* private parameters */
 private:
@@ -136,6 +139,7 @@ private:
 
     std::unordered_map<std::string, std::shared_ptr<Vda5050ActionHandlerBase>> action_handler_map_;
     pluginlib::ClassLoader<Vda5050ActionHandlerBase> action_handler_loader_;
+    std::vector<std::pair<std::string, std::string>> handler_list;
 
 private:
     // Publish a vda5050_msgs/AGVState based on the current state of the robot
@@ -145,7 +149,7 @@ private:
     // Timer callback function to publish a vda5050_msgs/AGVState message
     void StateTimerCallback();
     // The callback function when the node receives a vda5050_msgs/Order message and processes it
-    void OrderCallback(const vda5050_msgs::msg::Order::ConstSharedPtr msg);
+    void ProcessOrder(const vda5050_msgs::msg::Order::ConstSharedPtr msg);
     // Execute order callback
     void ExecuteOrderCallback();
     // Function that creates the NavigateThroughPoses goal message for Nav2 and sends that goal
@@ -178,7 +182,7 @@ private:
     void NavResultCallback(const GoalHandleNavThroughPoses::WrappedResult &result);
 
     void CancelOrder();
-    void InstantActionsCallback(const vda5050_msgs::msg::InstantActions::ConstSharedPtr msg);
+    void ProcessInstantActions(const vda5050_msgs::msg::InstantActions::ConstSharedPtr msg);
     // Handle teleop instant actions
     void TeleopActionHandler(const vda5050_msgs::msg::Action &teleop_action);
     // Handle factsheet instant actions

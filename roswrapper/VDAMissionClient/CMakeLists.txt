@@ -27,8 +27,11 @@ find_package(geometry_msgs REQUIRED)
 find_package(nav2_msgs REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(vda5050_msgs REQUIRED)
-
-
+find_package(tf2 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(lifecycle_msgs REQUIRED)
+find_package(pluginlib REQUIRED)
 # Build share library
 add_library(VDAMissionClient SHARED
   src/VDAMissionClient.cpp
@@ -55,7 +58,8 @@ add_library(VDAMissionClient SHARED
   src/ActionStateWrapper.cpp
 )
 
-ament_target_dependencies(VDAMissionClient rclcpp geometry_msgs nav2_msgs rclcpp_action vda5050_msgs)
+
+ament_target_dependencies(VDAMissionClient rclcpp geometry_msgs nav2_msgs lifecycle_msgs rclcpp_action vda5050_msgs sensor_msgs tf2_geometry_msgs tf2 pluginlib)
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

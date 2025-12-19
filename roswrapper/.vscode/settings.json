@@ -75,5 +75,6 @@
         "typeinfo": "cpp",
         "valarray": "cpp",
         "variant": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "/home/it-team/Documents/robotics-with-isaac/roswrapper/VDAMissionClient"
 }
