@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VDA5050Message", "..\sharelibrary\VDA5050Message\VDA5050Message.csproj", "{12AAB596-EA72-44C7-901C-BF7FE2DB4D69}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VDA5050Message", "VDA5050Message\VDA5050Message.csproj", "{12AAB596-EA72-44C7-901C-BF7FE2DB4D69}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RobotControlServer", "RobotControlServer\RobotControlServer.csproj", "{74FFBC36-9F9A-45DA-B236-194111569CDB}"
 EndProject
