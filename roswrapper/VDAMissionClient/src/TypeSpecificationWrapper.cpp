@@ -11,6 +11,16 @@ TypeSpecificationWrapper::~TypeSpecificationWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT TypeSpecificationWrapper *TypeSpecification_Create()
+    {
+        return new TypeSpecificationWrapper();
+    }
+
+    RCLCPP_EXPORT void TypeSpecification_Destroy(TypeSpecificationWrapper *wrapper)
+    {
+        delete wrapper;
+    }
+
     RCLCPP_EXPORT const char *TypeSpecification_GetSeriesName(TypeSpecificationWrapper *wrapper)
     {
         return wrapper->entity.series_name.c_str();

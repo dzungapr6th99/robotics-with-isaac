@@ -14,6 +14,16 @@ EdgeStateWrapper::~EdgeStateWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT EdgeStateWrapper *EdgeState_Create()
+    {
+        return new EdgeStateWrapper();
+    }
+
+    RCLCPP_EXPORT void EdgeState_Destroy(EdgeStateWrapper *wrapper)
+    {
+        delete wrapper;
+    }
+
     RCLCPP_EXPORT const char *EdgeState_GetEdgeId(EdgeStateWrapper *wrapper)
     {
         return wrapper->entity.edge_id.c_str();

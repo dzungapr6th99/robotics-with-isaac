@@ -22,6 +22,9 @@ namespace VDA5050Message
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ConnectionState ConnectionState { get; set; }
+
+        public override void CreateWrapper() { }
+        public override void GetDataWrapper(IntPtr prt) { }
     }
 
     public enum ConnectionState

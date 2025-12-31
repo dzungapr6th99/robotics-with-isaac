@@ -16,6 +16,16 @@ VisualizationWrapper::~VisualizationWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT VisualizationWrapper *Visualization_Create()
+    {
+        return new VisualizationWrapper();
+    }
+
+    RCLCPP_EXPORT void Visualization_Destroy(VisualizationWrapper *wrapper)
+    {
+        delete wrapper;
+    }
+
     RCLCPP_EXPORT int32_t Visualization_GetHeaderId(VisualizationWrapper *wrapper)
     {
         return wrapper->entity.header_id;

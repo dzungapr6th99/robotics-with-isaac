@@ -15,6 +15,16 @@ ActionWrapper::~ActionWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT ActionWrapper *Action_Create()
+    {
+        return new ActionWrapper();
+    }
+
+    RCLCPP_EXPORT void Action_Destroy(ActionWrapper *actionWrapper)
+    {
+        delete actionWrapper;
+    }
+
     RCLCPP_EXPORT void Action_ActionType(ActionWrapper *actionWrapper, const char *data)
     {
         actionWrapper->entity.action_type = data ? data : "";
@@ -41,4 +51,17 @@ extern "C"
         actionWrapper->entity.action_parameters = std::vector<ActionParameter>(parameters, parameters +length);
     }
 
+    RCLCPP_EXPORT void Action_ClearActionParameters(ActionWrapper *actionWrapper)
+    {
+        actionWrapper->entity.action_parameters.clear();
+    }
+
+    RCLCPP_EXPORT void Action_AddActionParameter(ActionWrapper *actionWrapper, const ActionParameter *parameter)
+    {
+        if (!parameter)
+        {
+            return;
+        }
+        actionWrapper->entity.action_parameters.push_back(*parameter);
+    }
 }

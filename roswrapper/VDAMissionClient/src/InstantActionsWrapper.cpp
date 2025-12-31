@@ -14,6 +14,16 @@ InstantActionsWrapper::~InstantActionsWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT InstantActionsWrapper *InstantActions_Create()
+    {
+        return new InstantActionsWrapper();
+    }
+
+    RCLCPP_EXPORT void InstantActions_Destroy(InstantActionsWrapper *instantActionsWrapper)
+    {
+        delete instantActionsWrapper;
+    }
+
     RCLCPP_EXPORT void InstantActions_SetHeaderId(InstantActionsWrapper *instantActionsWrapper, int32_t headerId)
     {
         instantActionsWrapper->entity.header_id = headerId;
@@ -42,5 +52,19 @@ extern "C"
     RCLCPP_EXPORT void InstantActions_SetActions(InstantActionsWrapper *instantActionsWrapper, const Action *data, int length)
     {
         instantActionsWrapper->entity.instant_actions = std::vector<Action>(data, data + length);
+    }
+
+    RCLCPP_EXPORT void InstantActions_ClearActions(InstantActionsWrapper *instantActionsWrapper)
+    {
+        instantActionsWrapper->entity.instant_actions.clear();
+    }
+
+    RCLCPP_EXPORT void InstantActions_AddAction(InstantActionsWrapper *instantActionsWrapper, const Action *action)
+    {
+        if (!action)
+        {
+            return;
+        }
+        instantActionsWrapper->entity.instant_actions.push_back(*action);
     }
 }

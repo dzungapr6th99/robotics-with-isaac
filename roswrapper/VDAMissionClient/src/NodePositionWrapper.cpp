@@ -11,6 +11,16 @@ NodePositionWrapper::~NodePositionWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT NodePositionWrapper *NodePosition_Create()
+    {
+        return new NodePositionWrapper();
+    }
+
+    RCLCPP_EXPORT void NodePosition_Destroy(NodePositionWrapper *nodePositionWrapper)
+    {
+        delete nodePositionWrapper;
+    }
+
     RCLCPP_EXPORT void NodePosition_SetX(NodePositionWrapper *nodePositionWrapper, double data)
     {
         nodePositionWrapper->entity.x = data;

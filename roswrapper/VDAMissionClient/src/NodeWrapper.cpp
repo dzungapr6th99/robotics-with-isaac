@@ -16,6 +16,16 @@ NodeWrapper::~NodeWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT NodeWrapper *Node_Create()
+    {
+        return new NodeWrapper();
+    }
+
+    RCLCPP_EXPORT void Node_Destroy(NodeWrapper *nodeWrapper)
+    {
+        delete nodeWrapper;
+    }
+
     RCLCPP_EXPORT void Node_SetNodeId(NodeWrapper *nodeWrapper, const char *data)
     {
         nodeWrapper->entity.node_id  = data ? data : "";
@@ -46,4 +56,17 @@ extern "C"
         nodeWrapper->entity.actions = std::vector<Action>(actions, actions + length);
     }
 
+    RCLCPP_EXPORT void Node_ClearActions(NodeWrapper *nodeWrapper)
+    {
+        nodeWrapper->entity.actions.clear();
+    }
+
+    RCLCPP_EXPORT void Node_AddAction(NodeWrapper *nodeWrapper, const Action *action)
+    {
+        if (!action)
+        {
+            return;
+        }
+        nodeWrapper->entity.actions.push_back(*action);
+    }
 }

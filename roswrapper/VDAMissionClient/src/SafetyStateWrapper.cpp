@@ -11,6 +11,16 @@ SafetyStateWrapper::~SafetyStateWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT SafetyStateWrapper *SafetyState_Create()
+    {
+        return new SafetyStateWrapper();
+    }
+
+    RCLCPP_EXPORT void SafetyState_Destroy(SafetyStateWrapper *wrapper)
+    {
+        delete wrapper;
+    }
+
     RCLCPP_EXPORT const char *SafetyState_GetEStop(SafetyStateWrapper *wrapper)
     {
         return wrapper->entity.e_stop.c_str();

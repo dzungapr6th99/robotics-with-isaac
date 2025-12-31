@@ -6,14 +6,17 @@ using System.Threading.Tasks;
 
 namespace VDA5050Message.Base
 {
-    public class ProtocolLimits
+    public class ProtocolLimits: VDA5050MessageBase
     {
         public MaxStringLens? MaxStringLens { get; set; }
         public MaxArrayLens? MaxArrayLens { get; set; }
         public Timing Timing { get; set; }
+
+        public override void CreateWrapper() { }
+        public override void GetDataWrapper(IntPtr prt) { }
     }
 
-    public class MaxStringLens
+    public class MaxStringLens: VDA5050MessageBase
     {
         public int? MsgLen { get; set; }
         public int? TopicSerialLen { get; set; }
@@ -22,9 +25,12 @@ namespace VDA5050Message.Base
         public bool? IdNumericalOnly { get; set; }
         public int? EnumLen { get; set; }
         public int? LoadIdLen { get; set; }
+
+        public override void CreateWrapper() { }
+        public override void GetDataWrapper(IntPtr prt) { }
     }
 
-    public class MaxArrayLens
+    public class MaxArrayLens: VDA5050MessageBase
     {
         public int? OrderNodes { get; set; }
         public int? OrderEdges { get; set; }
@@ -42,13 +48,19 @@ namespace VDA5050Message.Base
         public int? StateInformation { get; set; }
         public int? ErrorErrorReferences { get; set; }
         public int? InformationInfoReferences { get; set; }
+
+        public override void CreateWrapper() { }
+        public override void GetDataWrapper(IntPtr prt) { }
     }
 
-    public class Timing
+    public class Timing: VDA5050MessageBase
     {
         public double MinOrderInterval { get; set; }
         public double MinStateInterval { get; set; }
         public double? DefaultStateInterval { get; set; }
         public double? VisualizationInterval { get; set; }
+
+        public override void CreateWrapper() { }
+        public override void GetDataWrapper(IntPtr prt) { }
     }
 }

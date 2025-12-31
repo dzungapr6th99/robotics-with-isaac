@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace VDA5050Message.Base
 {
-    public class Error
+    public class Error: VDA5050MessageBase
     {
         public string ErrorType { get; set; }
         public List<ErrorReference>? ErrorReferences { get; set; }
@@ -16,12 +16,18 @@ namespace VDA5050Message.Base
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ErrorLevel ErrorLevel { get; set; }
+
+        public override void CreateWrapper() { }
+        public override void GetDataWrapper(IntPtr prt) { }
     }
 
-    public class ErrorReference
+    public class ErrorReference: VDA5050MessageBase
     {
         public string ReferenceKey { get; set; }
         public string ReferenceValue { get; set; }
+
+        public override void CreateWrapper() { }
+        public override void GetDataWrapper(IntPtr prt) { }
     }
 
     public enum ErrorLevel

@@ -11,6 +11,16 @@ PhysicalParametersWrapper::~PhysicalParametersWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT PhysicalParametersWrapper *PhysicalParameters_Create()
+    {
+        return new PhysicalParametersWrapper();
+    }
+
+    RCLCPP_EXPORT void PhysicalParameters_Destroy(PhysicalParametersWrapper *wrapper)
+    {
+        delete wrapper;
+    }
+
     RCLCPP_EXPORT double PhysicalParameters_GetSpeedMin(PhysicalParametersWrapper *wrapper)
     {
         return wrapper->entity.speed_min;

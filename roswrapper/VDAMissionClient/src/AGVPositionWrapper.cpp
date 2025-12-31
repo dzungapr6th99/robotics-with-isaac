@@ -11,6 +11,16 @@ AGVPositionWrapper::~AGVPositionWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT AGVPositionWrapper *AGVPosition_Create()
+    {
+        return new AGVPositionWrapper();
+    }
+
+    RCLCPP_EXPORT void AGVPosition_Destroy(AGVPositionWrapper *wrapper)
+    {
+        delete wrapper;
+    }
+
     RCLCPP_EXPORT bool AGVPosition_GetPositionInitialized(AGVPositionWrapper *wrapper)
     {
         return wrapper->entity.position_initialized;

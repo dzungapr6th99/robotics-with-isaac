@@ -11,6 +11,16 @@ BatteryStateWrapper::~BatteryStateWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT BatteryStateWrapper *BatteryState_Create()
+    {
+        return new BatteryStateWrapper();
+    }
+
+    RCLCPP_EXPORT void BatteryState_Destroy(BatteryStateWrapper *wrapper)
+    {
+        delete wrapper;
+    }
+
     RCLCPP_EXPORT double BatteryState_GetBatteryCharge(BatteryStateWrapper *wrapper)
     {
         return wrapper->entity.battery_charge;

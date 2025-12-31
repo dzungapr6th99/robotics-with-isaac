@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VDA5050Message.Base
 {
-    public class Header
+    public class Header: VDA5050MessageBase
     {
         public string? HeaderId { get; set; }
         public string? TimeStamp {  get; set; }
@@ -14,5 +14,7 @@ namespace VDA5050Message.Base
         public string? Manufacturer {  get; set; }
         public string? SerialNumber {  get; set; }
 
+        public override void CreateWrapper() { }
+        public override void GetDataWrapper(IntPtr prt) { }
     }
 }

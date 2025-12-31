@@ -16,6 +16,16 @@ FactsheetWrapper::~FactsheetWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT FactsheetWrapper *Factsheet_Create()
+    {
+        return new FactsheetWrapper();
+    }
+
+    RCLCPP_EXPORT void Factsheet_Destroy(FactsheetWrapper *wrapper)
+    {
+        delete wrapper;
+    }
+
     RCLCPP_EXPORT int32_t Factsheet_GetHeaderId(FactsheetWrapper *wrapper)
     {
         return wrapper->entity.header_id;

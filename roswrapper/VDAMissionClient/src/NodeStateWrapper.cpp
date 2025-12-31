@@ -14,6 +14,16 @@ NodeStateWrapper::~NodeStateWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT NodeStateWrapper *NodeState_Create()
+    {
+        return new NodeStateWrapper();
+    }
+
+    RCLCPP_EXPORT void NodeState_Destroy(NodeStateWrapper *wrapper)
+    {
+        delete wrapper;
+    }
+
     RCLCPP_EXPORT const char *NodeState_GetNodeId(NodeStateWrapper *wrapper)
     {
         return wrapper->entity.node_id.c_str();

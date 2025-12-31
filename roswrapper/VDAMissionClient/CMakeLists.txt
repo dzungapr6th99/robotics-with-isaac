@@ -58,6 +58,13 @@ add_library(VDAMissionClient SHARED
   src/ActionStateWrapper.cpp
 )
 
+add_custom_command(
+  TARGET VDAMissionClient
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+          $<TARGET_FILE:VDAMissionClient>
+          $<TARGET_FILE_DIR:VDAMissionClient>/libVDAWrapper.so
+)
 
 ament_target_dependencies(VDAMissionClient rclcpp geometry_msgs nav2_msgs lifecycle_msgs rclcpp_action vda5050_msgs sensor_msgs tf2_geometry_msgs tf2 pluginlib)
 if(BUILD_TESTING)

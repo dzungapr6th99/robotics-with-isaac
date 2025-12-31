@@ -7,13 +7,16 @@ using System.Threading.Tasks;
 
 namespace VDA5050Message.Base
 {
-    public class ProtocolFeatures
+    public class ProtocolFeatures: VDA5050MessageBase
     {
         public List<OptionalParameter> OptionalParameters { get; set; }
         public List<AgvAction> AgvActions { get; set; }
+
+        public override void CreateWrapper() { }
+        public override void GetDataWrapper(IntPtr prt) { }
     }
 
-    public class OptionalParameter
+    public class OptionalParameter: VDA5050MessageBase
     {
         public string Parameter { get; set; }
 
@@ -21,6 +24,9 @@ namespace VDA5050Message.Base
         public SupportType Support { get; set; }
 
         public string? Description { get; set; }
+
+        public override void CreateWrapper() { }
+        public override void GetDataWrapper(IntPtr prt) { }
     }
 
     public enum SupportType
@@ -29,7 +35,7 @@ namespace VDA5050Message.Base
         REQUIRED
     }
 
-    public class AgvAction
+    public class AgvAction: VDA5050MessageBase
     {
         public string ActionType { get; set; }
         public string? ActionDescription { get; set; }
@@ -37,6 +43,9 @@ namespace VDA5050Message.Base
         public List<ActionParameterSpec>? ActionParameters { get; set; }
         public string? ResultDescription { get; set; }
         public List<BlockingType>? BlockingTypes { get; set; }
+
+        public override void CreateWrapper() { }
+        public override void GetDataWrapper(IntPtr prt) { }
     }
 
     public enum ActionScope
@@ -46,7 +55,7 @@ namespace VDA5050Message.Base
         EDGE
     }
 
-    public class ActionParameterSpec
+    public class ActionParameterSpec: VDA5050MessageBase
     {
         public string Key { get; set; }
 
@@ -55,6 +64,9 @@ namespace VDA5050Message.Base
 
         public string? Description { get; set; }
         public bool? IsOptional { get; set; }
+
+        public override void CreateWrapper() { }
+        public override void GetDataWrapper(IntPtr prt) { }
     }
 
     public enum ValueDataType

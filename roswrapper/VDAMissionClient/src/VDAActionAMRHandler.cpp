@@ -58,7 +58,6 @@ void VDAActionAMRHandler::HandlePick(vda5050_msgs::msg::Action action)
         client_node_->AddError(error);
     }
 }
-
 #include <pluginlib/class_list_macros.hpp>
 
 PLUGINLIB_EXPORT_CLASS(VDAActionAMRHandler, Vda5050ActionHandlerBase)

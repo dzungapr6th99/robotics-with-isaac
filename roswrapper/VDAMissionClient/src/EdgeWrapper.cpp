@@ -14,6 +14,16 @@ EdgeWrapper::~EdgeWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT EdgeWrapper *Edge_Create()
+    {
+        return new EdgeWrapper();
+    }
+
+    RCLCPP_EXPORT void Edge_Destroy(EdgeWrapper *edgeWrapper)
+    {
+        delete edgeWrapper;
+    }
+
     RCLCPP_EXPORT void Edge_SetEdgeId(EdgeWrapper *edgeWrapper, const char *data)
     {
         edgeWrapper->entity.edge_id = data ? data : "";
@@ -97,5 +107,19 @@ extern "C"
     RCLCPP_EXPORT void Edge_SetAction(EdgeWrapper *edgeWrapper, const Action *actions, int length)
     {
         edgeWrapper->entity.actions = std::vector<Action>(actions, actions+ length);
+    }
+
+    RCLCPP_EXPORT void Edge_ClearActions(EdgeWrapper *edgeWrapper)
+    {
+        edgeWrapper->entity.actions.clear();
+    }
+
+    RCLCPP_EXPORT void Edge_AddAction(EdgeWrapper *edgeWrapper, const Action *action)
+    {
+        if (!action)
+        {
+            return;
+        }
+        edgeWrapper->entity.actions.push_back(*action);
     }
 }

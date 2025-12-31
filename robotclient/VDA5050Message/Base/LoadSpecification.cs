@@ -6,13 +6,16 @@ using System.Threading.Tasks;
 
 namespace VDA5050Message.Base
 {
-    public class LoadSpecification
+    public class LoadSpecification: VDA5050MessageBase
     {
         public List<string>? LoadPositions { get; set; }
         public List<LoadSet>? LoadSets { get; set; }
+
+        public override void CreateWrapper() { }
+        public override void GetDataWrapper(IntPtr prt) { }
     }
 
-    public class LoadSet
+    public class LoadSet: VDA5050MessageBase
     {
         public string SetName { get; set; }
         public string LoadType { get; set; }
@@ -34,6 +37,9 @@ namespace VDA5050Message.Base
         public double? PickTime { get; set; }
         public double? DropTime { get; set; }
         public string? Description { get; set; }
+
+        public override void CreateWrapper() { }
+        public override void GetDataWrapper(IntPtr prt) { }
     }
 
 }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace VDA5050Message.Base
 {
-    public class Map
+    public class Map: VDA5050MessageBase
     {
         public string MapId { get; set; }
         public string MapVersion { get; set; }
@@ -15,6 +15,9 @@ namespace VDA5050Message.Base
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public MapStatus MapStatus { get; set; }
+
+        public override void CreateWrapper() { }
+        public override void GetDataWrapper(IntPtr prt) { }
     }
 
 }

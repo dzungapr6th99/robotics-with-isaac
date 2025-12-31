@@ -13,6 +13,16 @@ OrderWrapper::~OrderWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT OrderWrapper *Order_Create()
+    {
+        return new OrderWrapper();
+    }
+
+    RCLCPP_EXPORT void Order_Destroy(OrderWrapper *orderWrapper)
+    {
+        delete orderWrapper;
+    }
+
     RCLCPP_EXPORT void Order_SetHeaderId(OrderWrapper *orderWrapper, int32_t headerId)
     {
         orderWrapper->entity.header_id = headerId;
@@ -60,5 +70,33 @@ extern "C"
     RCLCPP_EXPORT void Order_SetEgdes(OrderWrapper *OrderWrapper, const Edge *data, int length)
     {
         OrderWrapper->entity.edges = std::vector<Edge>(data, data + length);
+    }
+
+    RCLCPP_EXPORT void Order_ClearNodes(OrderWrapper *orderWrapper)
+    {
+        orderWrapper->entity.nodes.clear();
+    }
+
+    RCLCPP_EXPORT void Order_AddNode(OrderWrapper *orderWrapper, const Node *node)
+    {
+        if (!node)
+        {
+            return;
+        }
+        orderWrapper->entity.nodes.push_back(*node);
+    }
+
+    RCLCPP_EXPORT void Order_ClearEdges(OrderWrapper *orderWrapper)
+    {
+        orderWrapper->entity.edges.clear();
+    }
+
+    RCLCPP_EXPORT void Order_AddEdge(OrderWrapper *orderWrapper, const Edge *edge)
+    {
+        if (!edge)
+        {
+            return;
+        }
+        orderWrapper->entity.edges.push_back(*edge);
     }
 }

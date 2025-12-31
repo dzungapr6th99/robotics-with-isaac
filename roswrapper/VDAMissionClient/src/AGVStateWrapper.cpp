@@ -32,6 +32,16 @@ AGVStateWrapper::~AGVStateWrapper()
 
 extern "C"
 {
+    RCLCPP_EXPORT AGVStateWrapper *AGVState_Create()
+    {
+        return new AGVStateWrapper();
+    }
+
+    RCLCPP_EXPORT void AGVState_Destroy(AGVStateWrapper *wrapper)
+    {
+        delete wrapper;
+    }
+
     RCLCPP_EXPORT int32_t AGVState_GetHeaderId(AGVStateWrapper *wrapper)
     {
         return wrapper->entity.header_id;
@@ -91,6 +101,15 @@ extern "C"
         return wrapper->entity.node_states.data();
     }
 
+    RCLCPP_EXPORT const NodeState *AGVState_GetNodeStateAt(AGVStateWrapper *wrapper, int index)
+    {
+        if (!wrapper || index < 0 || index >= static_cast<int>(wrapper->entity.node_states.size()))
+        {
+            return nullptr;
+        }
+        return &wrapper->entity.node_states[static_cast<size_t>(index)];
+    }
+
     RCLCPP_EXPORT const EdgeState *AGVState_GetEdgeStates(AGVStateWrapper *wrapper, int *length)
     {
         if (length)
@@ -98,6 +117,15 @@ extern "C"
             *length = static_cast<int>(wrapper->entity.edge_states.size());
         }
         return wrapper->entity.edge_states.data();
+    }
+
+    RCLCPP_EXPORT const EdgeState *AGVState_GetEdgeStateAt(AGVStateWrapper *wrapper, int index)
+    {
+        if (!wrapper || index < 0 || index >= static_cast<int>(wrapper->entity.edge_states.size()))
+        {
+            return nullptr;
+        }
+        return &wrapper->entity.edge_states[static_cast<size_t>(index)];
     }
 
     RCLCPP_EXPORT const AGVPosition *AGVState_GetAGVPosition(AGVStateWrapper *wrapper)
@@ -146,6 +174,15 @@ extern "C"
             *length = static_cast<int>(wrapper->entity.action_states.size());
         }
         return wrapper->entity.action_states.data();
+    }
+
+    RCLCPP_EXPORT const ActionState *AGVState_GetActionStateAt(AGVStateWrapper *wrapper, int index)
+    {
+        if (!wrapper || index < 0 || index >= static_cast<int>(wrapper->entity.action_states.size()))
+        {
+            return nullptr;
+        }
+        return &wrapper->entity.action_states[static_cast<size_t>(index)];
     }
 
     RCLCPP_EXPORT const BatteryState *AGVState_GetBatteryState(AGVStateWrapper *wrapper)
