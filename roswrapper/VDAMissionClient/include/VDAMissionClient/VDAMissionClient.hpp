@@ -25,6 +25,11 @@
 #include "vda5050_msgs/msg/edge_state.hpp"
 #include "vda5050_msgs/msg/instant_actions.hpp"
 #include "vda5050_msgs/msg/factsheet.hpp"
+#include "VDA5050Wrapper/OrderWrapper.hpp"
+#include "VDA5050Wrapper/InstantActionsWrapper.hpp"
+#include "VDA5050Wrapper/AGVStateWrapper.hpp"
+#include "VDA5050Wrapper/VisualizationWrapper.hpp"
+#include "VDA5050Wrapper/FactsheetWrapper.hpp"
 class Vda5050ActionHandlerBase;
 class VDAMissionClient : public rclcpp::Node
 {
@@ -74,7 +79,12 @@ public:
 
     std::vector<vda5050_msgs::msg::ErrorReference> CreateErrorReferenceList(
         const std::vector<std::pair<std::string, std::string>> &error_refs);
-
+    // Order information for feedback of the mission
+    vda5050_msgs::msg::AGVState::SharedPtr agv_state_;
+    // Factsheet information for robot
+    vda5050_msgs::msg::Factsheet::SharedPtr factsheet_;
+    // Visualization information for robot
+    vda5050_msgs::msg::Visualization::SharedPtr visualization_;
     // Create an error message
     vda5050_msgs::msg::Error CreateError(
         ErrorLevel level, const std::string &error_msg,
@@ -82,6 +92,18 @@ public:
         const std::string &error_type = "");
     // Add error to the agv_state_
     void AddError(const vda5050_msgs::msg::Error &error);
+
+    // Vda5050 action handler: check actions in the current node and send requests to trigger
+    // different servers based on the action type
+    void ExecuteAction(const vda5050_msgs::msg::Action &vda5050_action);
+    void ProcessInstantActions(const vda5050_msgs::msg::InstantActions::ConstSharedPtr msg);
+
+    // The callback function when the node receives a vda5050_msgs/Order message and processes it
+    void ProcessOrder(const vda5050_msgs::msg::Order::ConstSharedPtr msg);
+    void PauseOrder();
+    void ResumeOrder(const vda5050_msgs::msg::Action &action);
+    void CancelOrder();
+    
 
     /* private parameters */
 private:
@@ -107,10 +129,7 @@ private:
     std::mutex state_mutex_;
 
     vda5050_msgs::msg::Order::ConstSharedPtr current_order_;
-    // Order information for feedback of the mission
-    vda5050_msgs::msg::AGVState::SharedPtr agv_state_;
-    // Factsheet information for robot
-    vda5050_msgs::msg::Factsheet::SharedPtr factsheet_;
+
     // Number of actions in the current order
     size_t num_actions_;
     // Cancel action
@@ -148,16 +167,11 @@ private:
     void PublishRobotFactsheet();
     // Timer callback function to publish a vda5050_msgs/AGVState message
     void StateTimerCallback();
-    // The callback function when the node receives a vda5050_msgs/Order message and processes it
-    void ProcessOrder(const vda5050_msgs::msg::Order::ConstSharedPtr msg);
     // Execute order callback
     void ExecuteOrderCallback();
     // Function that creates the NavigateThroughPoses goal message for Nav2 and sends that goal
     // asynchronously
     void NavigateThroughPoses();
-    // Vda5050 action handler: check actions in the current node and send requests to trigger
-    // different servers based on the action type
-    void ExecuteAction(const vda5050_msgs::msg::Action &vda5050_action);
     // Initialization the order state once received a new order
     void InitAGVState();
     // The callback function when the node receives a sensor_msgs/BatteryState message and processes
@@ -181,8 +195,6 @@ private:
     // Result callback for NavigateThroughPoses goal message
     void NavResultCallback(const GoalHandleNavThroughPoses::WrappedResult &result);
 
-    void CancelOrder();
-    void ProcessInstantActions(const vda5050_msgs::msg::InstantActions::ConstSharedPtr msg);
     // Handle teleop instant actions
     void TeleopActionHandler(const vda5050_msgs::msg::Action &teleop_action);
     // Handle factsheet instant actions
@@ -195,19 +207,21 @@ private:
         typename rclcpp::Client<ServiceT>::SharedPtr client,
         typename ServiceT::Request::SharedPtr request);
 
+    bool CanAcceptOrder();
     std::string GetActionState(const std::string &action_id);
     const vda5050_msgs::msg::Action &GetAction(const std::string &action_id);
 
     vda5050_msgs::msg::ErrorReference CreateErrorReference(
         const std::string &reference_key, const std::string &reference_value);
 
-    bool CanAcceptOrder();
-
-    void PauseOrder();
-    void ResumeOrder(const vda5050_msgs::msg::Action &action);
 };
 
 extern "C"
 {
     RCLCPP_EXPORT void InitEnviroment();
+    RCLCPP_EXPORT void ExecuteOrder(VDAMissionClient *client, OrderWrapper* orderWrapper);
+    RCLCPP_EXPORT void ExecuteInstantActions(VDAMissionClient *client, InstantActionsWrapper* instantActionWrapper);
+    RCLCPP_EXPORT AGVStateWrapper* GetAGVState(VDAMissionClient *client);
+    RCLCPP_EXPORT FactsheetWrapper* GetFactsheet(VDAMissionClient *client);
+    RCLCPP_EXPORT VisualizationWrapper* GetVisualization(VDAMissionClient *client);
 }

@@ -288,6 +288,8 @@ void VDAMissionClient::OdometryCallback(const nav_msgs::msg::Odometry::ConstShar
     agv_state_->velocity.vx = msg->twist.twist.linear.x;
     agv_state_->velocity.vy = msg->twist.twist.linear.y;
     agv_state_->velocity.omega = msg->twist.twist.angular.z;
+    visualization_->velocity = agv_state_->velocity;
+
 }
 
 #pragma endregion
@@ -538,6 +540,8 @@ void VDAMissionClient::ExecuteOrderCallback()
                 tf2::TimePointZero);
             agv_state_->agv_position.x = t.transform.translation.x;
             agv_state_->agv_position.y = t.transform.translation.y;
+            visualization_->agv_position.x = t.transform.translation.x;
+            visualization_->agv_position.y = t.transform.translation.y;
             // Calculate robot orientation
             tf2::Quaternion quaternion;
             tf2::fromMsg(t.transform.rotation, quaternion);
@@ -546,6 +550,7 @@ void VDAMissionClient::ExecuteOrderCallback()
             matrix.getEulerYPR(yaw, pitch, roll);
             agv_state_->agv_position.theta = yaw;
             agv_state_->agv_position.position_initialized = true;
+            visualization_->agv_position.theta = yaw;
             RCLCPP_INFO_ONCE(
                 this->get_logger(), "Robot position initialized");
         }
@@ -758,5 +763,44 @@ extern "C"
     RCLCPP_EXPORT void InitEnviroment()
     {
         rclcpp::init(0, nullptr);
+    }
+
+    RCLCPP_EXPORT VDAMissionClient* CreateVDAMissionClient()
+    {
+        return new VDAMissionClient();
+    }   
+    RCLCPP_EXPORT void ExecuteOrder(VDAMissionClient *client, OrderWrapper* orderWrapper)
+    {
+        auto order_msg = orderWrapper->entity;
+        auto order_ptr = std::make_shared<vda5050_msgs::msg::Order>(order_msg);
+        client->ProcessOrder(order_ptr);
+    }
+
+    RCLCPP_EXPORT void ExecuteInstantActions(VDAMissionClient *client, InstantActionsWrapper* instantActionsWrapper)
+    {
+        auto instant_actions_msg = instantActionsWrapper->entity;
+        auto instant_actions_ptr = std::make_shared<vda5050_msgs::msg::InstantActions>(instant_actions_msg);
+        client->ProcessInstantActions(instant_actions_ptr);
+    }
+
+    RCLCPP_EXPORT AGVStateWrapper* GetAGVState(VDAMissionClient *client){
+        auto agv_state_msg = client->agv_state_;
+        auto agv_state_wrapper = new AGVStateWrapper();
+        agv_state_wrapper->entity = *agv_state_msg;
+        return agv_state_wrapper;
+    }
+
+    RCLCPP_EXPORT FactsheetWrapper* GetFactsheet(VDAMissionClient *client){
+        auto factsheet_msg = client->factsheet_;
+        auto factsheet_wrapper = new FactsheetWrapper();
+        factsheet_wrapper->entity = *factsheet_msg;
+        return factsheet_wrapper;
+    }
+
+    RCLCPP_EXPORT VisualizationWrapper* GetVisualization(VDAMissionClient *client){
+        auto visualization_msg = client->visualization_;
+        auto visualization_wrapper = new VisualizationWrapper();
+        visualization_wrapper->entity = *visualization_msg;
+        return visualization_wrapper;
     }
 }
