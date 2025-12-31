@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MqttService", "MqttService\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonLib", "..\sharelibrary\CommonLib\CommonLib.csproj", "{4FD197E9-8041-E40C-EF28-C13A2E2FE578}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VDA5050Message", "..\sharelibrary\VDA5050Message\VDA5050Message.csproj", "{456C8C64-07DD-22CC-8B99-684C2F42D1EC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VDA5050Message", "VDA5050Message\VDA5050Message.csproj", "{456C8C64-07DD-22CC-8B99-684C2F42D1EC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigApp", "ConfigApp\ConfigApp.csproj", "{7E7F7122-52A4-408B-B5A9-ED23F098DE26}"
 EndProject
