@@ -12,9 +12,10 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\sharelibrary\CommonLib\CommonLib.csproj" />
-    <ProjectReference Include="..\..\sharelibrary\VDA5050Message\VDA5050Message.csproj" />
     <ProjectReference Include="..\ConfigApp\ConfigApp.csproj" />
+    <ProjectReference Include="..\Entity\Entity.csproj" />
     <ProjectReference Include="..\LocalMemory\LocalMemory.csproj" />
     <ProjectReference Include="..\RosNodeWrapper\RosNodeWrapper.csproj" />
+    <ProjectReference Include="..\VDA5050Message\VDA5050Message.csproj" />
   </ItemGroup>
 </Project>

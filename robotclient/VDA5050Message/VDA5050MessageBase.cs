@@ -9,7 +9,7 @@ namespace VDA5050Message
 {
     public class VDA5050MessageBase
     {
-        internal IntPtr? _wrapperPtr{ get; set; }
+        internal IntPtr? _wrapperPtr { get; set; }
 
         internal static string? PtrToString(IntPtr ptr) => ptr == IntPtr.Zero ? null : Marshal.PtrToStringAnsi(ptr);
 
@@ -20,6 +20,20 @@ namespace VDA5050Message
 
         public virtual void GetDataWrapper(IntPtr prt)
         {
+
+        }
+
+        public IntPtr? GetWrapperPtr()
+        {
+            if (_wrapperPtr!= null && _wrapperPtr.HasValue)
+            {
+                return _wrapperPtr;
+            }
+            else
+            {
+                CreateWrapper();
+                return _wrapperPtr;
+            }    
 
         }
     }

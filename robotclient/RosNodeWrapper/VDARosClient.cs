@@ -8,36 +8,66 @@ namespace RosNodeWrapper
     public class VDARosClient
     {
         private IntPtr _nodeVDA;
-        [DllImport("libVDAMissionClient.so")]
+
+        private bool _isRunningNode = false;
+        
+        #region Wrapper function
+        internal const string _libVDAClient = "libVDAMissionClient.so";
+        internal const string _libVDAMsg = "libVDAMessage.so";
+        [DllImport(_libVDAClient)]
         public static extern void InitEnviroment();
-        [DllImport("libVDAMissionClient.so", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(_libVDAClient, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr CreateVDANode(string robotNamespace);
 
+        [DllImport(_libVDAClient)]
+        private static extern void SpinNode();
 
-        [DllImport("libVDAMissionClient.so")]
+        [DllImport(_libVDAClient)]
+        private static extern IntPtr GetCurrentVisualization();
+
+        [DllImport(_libVDAClient)]
+        private static extern IntPtr GetCurrentRobotState();
+
+        [DllImport(_libVDAClient)]
         private static extern bool RunThroughPoses(IntPtr nodePtr, double[] xs, double[] ys, int n, double theta_final_rad, byte[] order_id);
+        
+        [DllImport(_libVDAClient)]
+        private static extern bool ExecuteOrder(IntPtr nodePtr, IntPtr orderPtr);
+
+        [DllImport(_libVDAClient)]
+        private static extern bool ExecuteInstantActions(IntPtr nodePtr, IntPtr instantActionsPtr);
+
+        #endregion
         public VDARosClient()
         {
 
-            //_nodeVDA = CreateVDANode(ConfigData.RosNamespace);
+            _nodeVDA = CreateVDANode(ConfigData.RosNamespace);
         }
 
 
         public void ExecuteOrder(Order order)
         {
-            List<double> x = new List<double>();
-            List<double> y = new List<double>();
-            foreach (var node in order.Nodes)
+
+            IntPtr? orderWrapperPtr =  order.GetWrapperPtr();
+            if (orderWrapperPtr != null && orderWrapperPtr.HasValue)
             {
-                if (node.NodePosition != null)
-                {
-                    x.Add(node.NodePosition.X);
-                    y.Add(node.NodePosition.Y);
-                }
+                ExecuteOrder(_nodeVDA, (IntPtr)orderWrapperPtr);
             }
-            double theta = order.Nodes.Last().NodePosition?.Theta ?? 0;
-            byte[] orderId = Encoding.ASCII.GetBytes(order.OrderId);
-            RunThroughPoses(_nodeVDA, x.ToArray(), y.ToArray(), x.Count(), theta ,orderId);
+        }
+
+        public void ExecuteInstantActions(InstantActions instantActions)
+        {
+
+            IntPtr? instantActionsWrapperPtr = instantActions.GetWrapperPtr();
+            if (instantActionsWrapperPtr != null && instantActionsWrapperPtr.HasValue)
+            {
+                ExecuteInstantActions(_nodeVDA, (IntPtr)instantActionsWrapperPtr);
+            }
+        }
+
+        private void threadPublishRobotData()
+        {
+            
         }
     }
 }
