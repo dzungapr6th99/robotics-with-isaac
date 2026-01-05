@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Disruptor" Version="6.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\sharelibrary\CommonLib\CommonLib.csproj" />
     <ProjectReference Include="..\ConfigApp\ConfigApp.csproj" />
     <ProjectReference Include="..\VDA5050Message\VDA5050Message.csproj" />
