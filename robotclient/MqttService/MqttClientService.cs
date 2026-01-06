@@ -8,8 +8,10 @@ using ConfigApp;
 using Disruptor;
 using MqttService.Interfaces;
 using LocalMemmory;
+using RosNodeWrapper;
 using RosNodeWrapper.Interfaces;
 using Disruptor.Dsl;
+
 namespace MqttService
 {
     public class MqttClientService : IEventHandler<DataContainer>, IMqttClientService , ISubscribeDisruptor<VDA5050MessageBase>
