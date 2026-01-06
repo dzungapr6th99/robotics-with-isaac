@@ -1,5 +1,6 @@
 ﻿using Entity.Api;
 using FluentValidation;
+using LocalMemmory;
 using Microsoft.AspNetCore.Mvc;
 
 namespace RobotClient.Controllers
@@ -23,9 +24,22 @@ namespace RobotClient.Controllers
             {
                 response.Code =  validation.Errors[0].ErrorCode;
                 response.Message = validation.Errors[0].ErrorMessage;
+                return BadRequest(response);
             }
 
-            return Ok(response);
+            bool changeNetwork = ShareMemoryData.ChangeNetworkConfig(request);
+            if (changeNetwork)
+            {
+                response.Code = "1";
+                response.Message = "Success";
+                return Ok(response);
+            }
+            else
+            {
+                response.Code = "-1";
+                response.Message = "Can not change network config now, please change it later";
+                return BadRequest(response);
+            }
         }
     }
 }
