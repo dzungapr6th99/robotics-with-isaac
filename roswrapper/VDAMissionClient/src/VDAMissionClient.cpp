@@ -7,7 +7,7 @@
 #include "tf2/LinearMath/Quaternion.h"
 #include <pluginlib/class_loader.hpp>
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
-VDAMissionClient::VDAMissionClient() : rclcpp::Node("vda_miss_client_node"),
+VDAMissionClient::VDAMissionClient(std::string ns) : rclcpp::Node("vda_miss_client_node", ns),
   action_handler_loader_("vda5050_action_handler",
     "isaac_ros::mission_client::Vda5050ActionHandlerBase")
 {
@@ -758,6 +758,14 @@ void VDAMissionClient::PublishRobotState()
 }
 
 #pragma endregion
+
+#pragma Spin node
+void VDAMissionClient::SpinOnce()
+{
+    rclcpp::spin_some(this->get_node_base_interface());
+}
+
+#pragma endregion
 extern "C"
 {
     RCLCPP_EXPORT void InitEnviroment()
@@ -765,10 +773,17 @@ extern "C"
         rclcpp::init(0, nullptr);
     }
 
-    RCLCPP_EXPORT VDAMissionClient* CreateVDAMissionClient()
+    RCLCPP_EXPORT VDAMissionClient* CreateVDAMissionClient(const char* ns)
     {
-        return new VDAMissionClient();
+        std::string name_space = ns;
+        return new VDAMissionClient(name_space);
     }   
+
+    RCLCPP_EXPORT void SpinNode(VDAMissionClient* nodePtr)
+    {
+        nodePtr->SpinOnce();
+    }
+
     RCLCPP_EXPORT void ExecuteOrder(VDAMissionClient *client, OrderWrapper* orderWrapper)
     {
         auto order_msg = orderWrapper->entity;

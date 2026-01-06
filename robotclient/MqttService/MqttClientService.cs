@@ -8,9 +8,11 @@ using ConfigApp;
 using Disruptor;
 using MqttService.Interfaces;
 using LocalMemmory;
+using RosNodeWrapper.Interfaces;
+using Disruptor.Dsl;
 namespace MqttService
 {
-    public class MqttClientService : IEventHandler<DataContainer>, IMqttClientService
+    public class MqttClientService : IEventHandler<DataContainer>, IMqttClientService , ISubscribeDisruptor<VDA5050MessageBase>
     {
         private readonly MqttClientFactory _mqttClientFactory;
         private readonly IMqttClient _mqttClient;
@@ -19,12 +21,19 @@ namespace MqttService
         private Thread? _threadReceiveMessage;
         private ProcessVDA5050Message _processVDAMsg;
         private string? _topicRobotLevel;
-        public MqttClientService()
+        private readonly IVDARosClient _vdaRosClient;
+        private Disruptor<DataContainer> _disruptor;
+        private RingBuffer<DataContainer> _ringBuffer;
+        public MqttClientService(IVDARosClient vdaRosClient)
         {
+            _vdaRosClient = vdaRosClient;
             _mqttClientFactory = new MqttClientFactory();
             _mqttClient = _mqttClient = _mqttClientFactory.CreateMqttClient();
             _jsonSerializerOptions = Common.CamelCaseSerialization;
             _processVDAMsg = new ProcessVDA5050Message();
+            _disruptor = new Disruptor<DataContainer>(() => new DataContainer(), 1024, TaskScheduler.Default, ProducerType.Single, new BlockingWaitStrategy());
+            _ringBuffer = _disruptor.RingBuffer;
+            _disruptor.HandleEventsWith(this);
         }
 
         public async Task ConnectToBroker()
@@ -127,6 +136,12 @@ namespace MqttService
                 return false;
             }
 
+        }
+
+        public void Enqueue(VDA5050MessageBase item)
+        {
+            
+            ;
         }
     }
 }

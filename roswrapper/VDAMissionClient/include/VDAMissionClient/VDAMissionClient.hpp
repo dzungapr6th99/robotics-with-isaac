@@ -55,7 +55,7 @@ public:
     };
     /* public function*/
 public:
-    explicit VDAMissionClient();
+    explicit VDAMissionClient(std::string ns);
     ~VDAMissionClient();
     bool RunThroughPoses(const std::vector<geometry_msgs::msg::PoseStamped> &poses);
     void UpdateActionState(
@@ -104,6 +104,8 @@ public:
     void ResumeOrder(const vda5050_msgs::msg::Action &action);
     void CancelOrder();
     
+    // Spin node
+    void SpinOnce();
 
     /* private parameters */
 private:
@@ -166,7 +168,7 @@ private:
     // Publish a vda5050_msgs/Factsheet based on the robot's sepcifications
     void PublishRobotFactsheet();
     // Timer callback function to publish a vda5050_msgs/AGVState message
-    void StateTimerCallback();
+    //void StateTimerCallback();
     // Execute order callback
     void ExecuteOrderCallback();
     // Function that creates the NavigateThroughPoses goal message for Nav2 and sends that goal
@@ -182,9 +184,9 @@ private:
     void OdometryCallback(const nav_msgs::msg::Odometry::ConstSharedPtr msg);
     // The callback function when the node receives a std_msgs/String info message and appends it to
     // the status message that gets published
-    void InfoCallback(const std_msgs::msg::String::ConstSharedPtr msg);
+    //void InfoCallback(const std_msgs::msg::String::ConstSharedPtr msg);
     // Timer callback function to publish a std_msgs/String message containing the order_id
-    void OrderIdCallback();
+    //void OrderIdCallback();
     // Goal response callback for NavigateThroughPoses goal message
     void NavGoalResponseCallback(
         const rclcpp_action::ClientGoalHandle<NavThroughPoses>::SharedPtr &goal);
@@ -196,9 +198,9 @@ private:
     void NavResultCallback(const GoalHandleNavThroughPoses::WrappedResult &result);
 
     // Handle teleop instant actions
-    void TeleopActionHandler(const vda5050_msgs::msg::Action &teleop_action);
+    //void TeleopActionHandler(const vda5050_msgs::msg::Action &teleop_action);
     // Handle factsheet instant actions
-    void FactsheetRequestHandler(const vda5050_msgs::msg::Action &factsheet_request);
+    //void FactsheetRequestHandler(const vda5050_msgs::msg::Action &factsheet_request);
     // The callback function when the node receives an order error message.
     void OrderValidErrorCallback(const std_msgs::msg::String::ConstSharedPtr msg);
     // Sync service request. Return request result
@@ -219,6 +221,7 @@ private:
 extern "C"
 {
     RCLCPP_EXPORT void InitEnviroment();
+    RCLCPP_EXPORT VDAMissionClient* CreateVDAMissionClient(const char* ns);
     RCLCPP_EXPORT void ExecuteOrder(VDAMissionClient *client, OrderWrapper* orderWrapper);
     RCLCPP_EXPORT void ExecuteInstantActions(VDAMissionClient *client, InstantActionsWrapper* instantActionWrapper);
     RCLCPP_EXPORT AGVStateWrapper* GetAGVState(VDAMissionClient *client);

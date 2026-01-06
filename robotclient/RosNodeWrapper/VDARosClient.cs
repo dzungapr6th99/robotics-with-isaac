@@ -1,9 +1,13 @@
-﻿using ConfigApp;
+﻿using CommonLib;
+using ConfigApp;
 using Disruptor;
+using LocalMemmory;
+using RosNodeWrapper.Interfaces;
 using System.Runtime.InteropServices;
 using System.Text;
 using VDA5050Message;
-
+using VDA5050Message.Base;
+using static CommonLib.ConstData.Mqtt;
 namespace RosNodeWrapper
 {
     public class VDARosClient
@@ -38,13 +42,12 @@ namespace RosNodeWrapper
         [DllImport(_libVDAClient)]
         private static extern bool ExecuteInstantActions(IntPtr nodePtr, IntPtr instantActionsPtr);
 
-        private List<IEventHandler<VDA5050MessageBase>> _listMessageQueueService;
-
+        private List<RingBuffer<DataContainer>> _listRingBuffer;
         private Thread? _threadSpinNode;
         #endregion
         public VDARosClient()
         {
-            _listMessageQueueService = new List<IEventHandler<VDA5050MessageBase>>();
+            _listRingBuffer = new List<RingBuffer<DataContainer>>();
             _nodeVDA = CreateVDAMissionClient(ConfigData.RosNamespace);
         }
 
@@ -78,29 +81,61 @@ namespace RosNodeWrapper
             }
         }
 
-        public void SubscribeData(IEventHandler<VDA5050MessageBase> queueMsgService)
+        public void SubscribeData(RingBuffer<DataContainer> queueMsgService)
         {
-            _listMessageQueueService.Add(queueMsgService);
+            _listRingBuffer.Add(queueMsgService);
         }
 
-        public void UnsubscribeData(IEventHandler<VDA5050MessageBase> queueMsgService)
+        public void UnsubscribeData(RingBuffer<DataContainer> queueMsgService)
         {
-            _listMessageQueueService.Remove(queueMsgService);
+
+            _listRingBuffer.Remove(queueMsgService);
         }
 
         private void threadSpinNodeVDA()
         {
             while (_isRunningNode)
             {
-                SpinNode(_nodeVDA);
-                IntPtr ptrVisualization = GetVisualization();
-                IntPtr ptrState = GetAGVState();
-                Visualization visualization = new Visualization();
-                visualization.GetDataWrapper(ptrVisualization);
-                State state = new State();
-                state.GetDataWrapper(ptrState);
-
+                try
+                {
+                    SpinNode(_nodeVDA);
+                    IntPtr ptrVisualization = GetVisualization();
+                    IntPtr ptrState = GetAGVState();
+                    Visualization visualization = new Visualization();
+                    visualization.GetDataWrapper(ptrVisualization);
+                    State state = new State();
+                    state.GetDataWrapper(ptrState);
+                    foreach (var msgQueueItem in _listRingBuffer)
+                    {
+                        EnqueueToRingBuffer(state, $"{ShareMemoryData.GetParentTopic()}/{EnumData.TopicName.STATE}", msgQueueItem);
+                        EnqueueToRingBuffer(visualization, $"{ShareMemoryData.GetParentTopic()}/{EnumData.TopicName.VISUALIZATION}", msgQueueItem);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    CommonLog.log.Error(ex);
+                }
+                Thread.Sleep(100);
             }
+        }
+
+        private bool EnqueueToRingBuffer(VDA5050MessageBase message, string topic, RingBuffer<DataContainer> ringBuffer)
+        {
+            if (ringBuffer.GetRemainingCapacity() > 0)
+            {
+                long sequences = ringBuffer.Next();
+                try
+                {
+                    ringBuffer[sequences].Message = message;
+                    ringBuffer[sequences].Topic = topic;
+                }
+                finally
+                {
+                    ringBuffer.Publish(sequences);
+                }
+            }
+
+            return true;
         }
     }
 }

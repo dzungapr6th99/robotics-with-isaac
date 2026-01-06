@@ -35,6 +35,11 @@ namespace LocalMemmory
 
         }
 
+        public static string GetParentTopic()
+        {
+            return $"{RobotConfiguration.InterfaceName}/{RobotConfiguration.MajorVersion}/{RobotConfiguration.Manufacturer}/{RobotConfiguration.SerialNumber}";
+        }
+
         public static bool ChangeVDAConfig(VDASettingsRequest request)
         {
             RobotConfiguration.InterfaceName = request.InterfaceName;

@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\sharelibrary\CommonLib\CommonLib.csproj" />
     <ProjectReference Include="..\ConfigApp\ConfigApp.csproj" />
+    <ProjectReference Include="..\LocalMemory\LocalMemory.csproj" />
     <ProjectReference Include="..\VDA5050Message\VDA5050Message.csproj" />
   </ItemGroup>
 
