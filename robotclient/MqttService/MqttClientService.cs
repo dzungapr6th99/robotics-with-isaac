@@ -14,7 +14,7 @@ using Disruptor.Dsl;
 
 namespace MqttService
 {
-    public class MqttClientService : IEventHandler<DataContainer>, IMqttClientService , ISubscribeDisruptor<VDA5050MessageBase>
+    public class MqttClientService : IEventHandler<DataContainer>, IMqttClientService
     {
         private readonly MqttClientFactory _mqttClientFactory;
         private readonly IMqttClient _mqttClient;
@@ -32,7 +32,7 @@ namespace MqttService
             _mqttClientFactory = new MqttClientFactory();
             _mqttClient = _mqttClient = _mqttClientFactory.CreateMqttClient();
             _jsonSerializerOptions = Common.CamelCaseSerialization;
-            _processVDAMsg = new ProcessVDA5050Message();
+            _processVDAMsg = new ProcessVDA5050Message(_vdaRosClient);
             _disruptor = new Disruptor<DataContainer>(() => new DataContainer(), 1024, TaskScheduler.Default, ProducerType.Single, new BlockingWaitStrategy());
             _ringBuffer = _disruptor.RingBuffer;
             _disruptor.HandleEventsWith(this);
@@ -105,7 +105,8 @@ namespace MqttService
         public void OnEvent(DataContainer data, long sequence, bool endOfBatch)
         {
             string msg = string.Empty;
-            switch (data.Topic)
+            string topic  = data.Topic.Split('/').Last();
+            switch (topic)
             {
                 case ConstData.Mqtt.Topic.VISUALIZATION:
                     msg = JsonSerializer.Serialize((Visualization)data.Message, _jsonSerializerOptions);
@@ -140,10 +141,5 @@ namespace MqttService
 
         }
 
-        public void Enqueue(VDA5050MessageBase item)
-        {
-            
-            ;
-        }
     }
 }

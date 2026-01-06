@@ -1,4 +1,5 @@
 ﻿using RosNodeWrapper;
+using RosNodeWrapper.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +11,11 @@ namespace MqttService
 {
     internal class ProcessVDA5050Message
     {
-        private VDARosClient _vdaRosClient;
-        public ProcessVDA5050Message()
+        private IVDARosClient _vdaRosClient;
+        
+        public ProcessVDA5050Message(IVDARosClient vdaRosClient)
         {
-            _vdaRosClient = new VDARosClient();
+            _vdaRosClient = vdaRosClient;
         }
         public void ProcessOrder(Order? order, string clientId)
         {
@@ -22,9 +24,6 @@ namespace MqttService
                 return;
             }
             _vdaRosClient.ExecuteOrder(order);
-
-            //Handle order
-
         }
 
         public void ProcessConnection(Connection? connection, string clientId)
@@ -34,14 +33,16 @@ namespace MqttService
                 return;
             }
 
-
             //handle connection
         }
 
         public void PocessIntantActions(InstantActions? instanceActions)
         {
-
-
+            if (instanceActions == null)
+            {
+                return;
+            }
+            _vdaRosClient.ExecuteInstantActions(instanceActions);
         }
     }
 }

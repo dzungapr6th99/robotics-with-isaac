@@ -1,6 +1,8 @@
 ﻿
 using MqttService;
 using MqttService.Interfaces;
+using RosNodeWrapper;
+using RosNodeWrapper.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +15,7 @@ namespace RobotClient.Startups
     {
         public static void InitServices(IServiceCollection services)
         {
+            services.AddSingleton<IVDARosClient, VDARosClient>();
             services.AddSingleton<IMqttClientService, MqttClientService>();
         }
     }

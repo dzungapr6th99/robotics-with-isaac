@@ -32,9 +32,7 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 find_package(pluginlib REQUIRED)
-# Build share library
-add_library(VDAMissionClient SHARED
-  src/VDAMissionClient.cpp
+set(vda_wrapper_sources
   src/OrderWrapper.cpp
   src/InstantActionsWrapper.cpp
   src/NodeWrapper.cpp
@@ -58,15 +56,18 @@ add_library(VDAMissionClient SHARED
   src/ActionStateWrapper.cpp
 )
 
-add_custom_command(
-  TARGET VDAMissionClient
-  POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E create_symlink
-          $<TARGET_FILE:VDAMissionClient>
-          $<TARGET_FILE_DIR:VDAMissionClient>/libVDAWrapper.so
+set(vda_mission_sources
+  src/VDAMissionClient.cpp
+  #src/VDAActionAMRHandler.cpp
 )
 
+# Build shared libraries
+add_library(VDAWrapper SHARED ${vda_wrapper_sources})
+add_library(VDAMissionClient SHARED ${vda_mission_sources})
+
+ament_target_dependencies(VDAWrapper rclcpp geometry_msgs nav2_msgs lifecycle_msgs rclcpp_action vda5050_msgs sensor_msgs tf2_geometry_msgs tf2 pluginlib)
 ament_target_dependencies(VDAMissionClient rclcpp geometry_msgs nav2_msgs lifecycle_msgs rclcpp_action vda5050_msgs sensor_msgs tf2_geometry_msgs tf2 pluginlib)
+target_link_libraries(VDAMissionClient VDAWrapper)
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

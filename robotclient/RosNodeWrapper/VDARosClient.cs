@@ -10,7 +10,7 @@ using VDA5050Message.Base;
 using static CommonLib.ConstData.Mqtt;
 namespace RosNodeWrapper
 {
-    public class VDARosClient
+    public class VDARosClient : IVDARosClient
     {
         private IntPtr _nodeVDA;
 
@@ -18,7 +18,6 @@ namespace RosNodeWrapper
 
         #region Wrapper function
         internal const string _libVDAClient = "libVDAMissionClient.so";
-        internal const string _libVDAMsg = "libVDAMessage.so";
         [DllImport(_libVDAClient)]
         public static extern void InitEnviroment();
         [DllImport(_libVDAClient, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
@@ -48,6 +47,7 @@ namespace RosNodeWrapper
         public VDARosClient()
         {
             _listRingBuffer = new List<RingBuffer<DataContainer>>();
+            InitEnviroment();
             _nodeVDA = CreateVDAMissionClient(ConfigData.RosNamespace);
         }
 
@@ -88,7 +88,6 @@ namespace RosNodeWrapper
 
         public void UnsubscribeData(RingBuffer<DataContainer> queueMsgService)
         {
-
             _listRingBuffer.Remove(queueMsgService);
         }
 
@@ -107,8 +106,8 @@ namespace RosNodeWrapper
                     state.GetDataWrapper(ptrState);
                     foreach (var msgQueueItem in _listRingBuffer)
                     {
-                        EnqueueToRingBuffer(state, $"{ShareMemoryData.GetParentTopic()}/{EnumData.TopicName.STATE}", msgQueueItem);
-                        EnqueueToRingBuffer(visualization, $"{ShareMemoryData.GetParentTopic()}/{EnumData.TopicName.VISUALIZATION}", msgQueueItem);
+                        EnqueueToRingBuffer(state, EnumData.TopicName.STATE, msgQueueItem);
+                        EnqueueToRingBuffer(visualization, EnumData.TopicName.VISUALIZATION, msgQueueItem);
                     }
                 }
                 catch (Exception ex)
