@@ -11,10 +11,10 @@ namespace RobotControlServer.Controller.Mqtt
     [MqttRoute("")]
     public class ConnectionController : MqttBaseController
     {
-        [MqttRoute("{robotId}/connection")]
-        public Task ProcessConnection(string robotId, [FromPayload] Connection connection)
+        [MqttRoute("{interfaceName}/{majorVersion}/{manufacturer}/{serialNumber}/connection")]
+        public Task ProcessConnection(string interfaceName, string majorVersion, string manufacturer, string serialNumber, [FromPayload] Connection connection)
         {
-            CommonLog.logApi.Info($"Receive connection from {robotId}");
+            CommonLog.logApi.Info($"Receive connection from {serialNumber}");
 
             return Ok();
 

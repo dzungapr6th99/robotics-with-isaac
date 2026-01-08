@@ -11,10 +11,10 @@ namespace RobotControlServer.Controller.Mqtt
     [MqttRoute("")]
     public class InstantActionsController : MqttBaseController
     {
-        [MqttRoute("{robotId}/instantActions")]
-        public Task ProcessInstantsAction(string robotId, [FromPayload] InstantActions instantActions)
+        [MqttRoute("{interfaceName}/{majorVersion}/{manufacturer}/{serialNumber}/instantActions")]
+        public Task ProcessInstantsAction(string interfaceName, string majorVersion, string manufacturer, string serialNumber, [FromPayload] InstantActions instantActions)
         {
-            CommonLog.logApi.Info($"Receive instantActions for robot {robotId}");
+            CommonLog.logApi.Info($"Receive instantActions for robot {serialNumber}");
 
             return Ok();
 

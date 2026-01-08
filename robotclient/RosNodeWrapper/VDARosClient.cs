@@ -31,13 +31,13 @@ namespace RosNodeWrapper
         private static extern IntPtr CreateVDAMissionClient(string robotNamespace);
 
         [DllImport(_libVDAClient)]
-        private static extern void SpinNode(IntPtr nodePtr);
+        private static extern bool SpinNode(IntPtr nodePtr);
 
         [DllImport(_libVDAClient)]
-        private static extern IntPtr GetVisualization();
+        private static extern IntPtr GetVisualization(IntPtr nodePtr);
 
         [DllImport(_libVDAClient)]
-        private static extern IntPtr GetAGVState();
+        private static extern IntPtr GetAGVState(IntPtr nodePtr);
 
         [DllImport(_libVDAClient)]
         private static extern bool RunThroughPoses(IntPtr nodePtr, double[] xs, double[] ys, int n, double theta_final_rad, byte[] order_id);
@@ -49,6 +49,7 @@ namespace RosNodeWrapper
         private static extern bool ExecuteInstantActions(IntPtr nodePtr, IntPtr instantActionsPtr);
 
         private List<RingBuffer<DataContainer>> _listRingBuffer;
+
         private Thread? _threadSpinNode;
         #endregion
         public VDARosClient()
@@ -60,8 +61,8 @@ namespace RosNodeWrapper
 #if DEBUG
                 EnsureDebugRosEnvironment();
 #endif
-                //InitEnviroment();
-                //_nodeVDA = CreateVDAMissionClient(ConfigData.RosNamespace);
+                InitEnviroment();
+                _nodeVDA = CreateVDAMissionClient(ConfigData.RosNamespace);
                 CommonLog.log.Info("VDARosClient initialized successfully");
             }
             catch (Exception ex)
@@ -261,11 +262,18 @@ namespace RosNodeWrapper
             {
                 try
                 {
-                    SpinNode(_nodeVDA);
-                    IntPtr ptrVisualization = GetVisualization();
-                    IntPtr ptrState = GetAGVState();
+                    bool spin = SpinNode(_nodeVDA);
+                    if (!spin)
+                    {
+                        Thread.Sleep(100);
+                        continue;
+                    }
+
+                    IntPtr ptrVisualization = GetVisualization(_nodeVDA);
+                    IntPtr ptrState = GetAGVState(_nodeVDA);
                     Visualization visualization = new Visualization();
                     visualization.GetDataWrapper(ptrVisualization);
+                    
                     State state = new State();
                     state.GetDataWrapper(ptrState);
                     foreach (var msgQueueItem in _listRingBuffer)

@@ -10,10 +10,11 @@ namespace RobotControlServer.Controller.Mqtt
     public class FactsheetController : MqttBaseController
     {
         public FactsheetController() { }
-        [MqttRoute("{robotId}/facsheet")]
-        public Task ProcessFactsheet(string robotId,[FromPayload] Factsheet factsheet)
+
+        [MqttRoute("{interfaceName}/{majorVersion}/{manufacturer}/{serialNumber}/factsheet")]
+        public Task ProcessFactsheet(string interfaceName, string majorVersion, string manufacturer, string serialNumber, [FromPayload] Factsheet factsheet)
         {
-            CommonLog.logApi.Info("Receive instantActions from {0}", ClientId);
+            CommonLog.logApi.Info("Receive factsheet from {0}", serialNumber);
             if (!string.IsNullOrEmpty(factsheet.SerialNumber))
             {
                 return Ok();

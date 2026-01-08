@@ -4,12 +4,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using System.Text.Json.Serialization;
 
 namespace VDA5050Message
 {
     public class VDA5050MessageBase
     {
         internal IntPtr? _wrapperPtr { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+        public virtual int HeaderId { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+        public virtual DateTime Timestamp { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+        public virtual string Version { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+        public virtual string Manufacturer { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+        public virtual string SerialNumber { get; set; }
 
         internal static string? PtrToString(IntPtr ptr) => ptr == IntPtr.Zero ? null : Marshal.PtrToStringAnsi(ptr);
 
@@ -25,7 +41,7 @@ namespace VDA5050Message
 
         public IntPtr? GetWrapperPtr()
         {
-            if (_wrapperPtr!= null && _wrapperPtr.HasValue)
+            if (_wrapperPtr != null && _wrapperPtr.HasValue)
             {
                 return _wrapperPtr;
             }
@@ -33,7 +49,7 @@ namespace VDA5050Message
             {
                 CreateWrapper();
                 return _wrapperPtr;
-            }    
+            }
 
         }
     }

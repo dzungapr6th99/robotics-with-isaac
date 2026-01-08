@@ -11,10 +11,10 @@ namespace RobotControlServer.Controller.Mqtt
     [MqttRoute("")]
     public class OrderController : MqttBaseController
     {
-        [MqttRoute("{robotId}/order")]
-        public Task ProcessOrder(string robotId,[FromPayload]Order order)
+        [MqttRoute("{interfaceName}/{majorVersion}/{manufacturer}/{serialNumber}/order")]
+        public Task ProcessOrder(string interfaceName, string majorVersion, string manufacturer, string serialNumber, [FromPayload] Order order)
         {
-            CommonLog.logApi.Info($"Receive order from {robotId}");
+            CommonLog.logApi.Info($"Receive order from {serialNumber}");
 
             if (!string.IsNullOrEmpty(order.OrderId))
             {

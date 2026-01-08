@@ -12,6 +12,7 @@
 #include <memory>
 #include <vector>
 #include <cmath>
+#include <chrono>
 #include <pluginlib/class_loader.hpp>
 #include "VDAMissionClient/Vda5050ActionHandlerBase.hpp"
 #include "vda5050_msgs/msg/error.hpp"
@@ -103,9 +104,9 @@ public:
     void PauseOrder();
     void ResumeOrder(const vda5050_msgs::msg::Action &action);
     void CancelOrder();
-    
+
     // Spin node
-    void SpinOnce();
+    bool SpinOnce();
 
     /* private parameters */
 private:
@@ -156,6 +157,7 @@ private:
     size_t current_action_state_{};
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+    rclcpp::TimerBase::SharedPtr state_update_timer_;
     ClientState client_state_;
 
     std::unordered_map<std::string, std::shared_ptr<Vda5050ActionHandlerBase>> action_handler_map_;
@@ -165,10 +167,11 @@ private:
 private:
     // Publish a vda5050_msgs/AGVState based on the current state of the robot
     void PublishRobotState();
+    bool UpdateRobotPoseFromTf();
     // Publish a vda5050_msgs/Factsheet based on the robot's sepcifications
     void PublishRobotFactsheet();
     // Timer callback function to publish a vda5050_msgs/AGVState message
-    //void StateTimerCallback();
+    // void StateTimerCallback();
     // Execute order callback
     void ExecuteOrderCallback();
     // Function that creates the NavigateThroughPoses goal message for Nav2 and sends that goal
@@ -184,9 +187,9 @@ private:
     void OdometryCallback(const nav_msgs::msg::Odometry::ConstSharedPtr msg);
     // The callback function when the node receives a std_msgs/String info message and appends it to
     // the status message that gets published
-    //void InfoCallback(const std_msgs::msg::String::ConstSharedPtr msg);
+    // void InfoCallback(const std_msgs::msg::String::ConstSharedPtr msg);
     // Timer callback function to publish a std_msgs/String message containing the order_id
-    //void OrderIdCallback();
+    // void OrderIdCallback();
     // Goal response callback for NavigateThroughPoses goal message
     void NavGoalResponseCallback(
         const rclcpp_action::ClientGoalHandle<NavThroughPoses>::SharedPtr &goal);
@@ -198,9 +201,9 @@ private:
     void NavResultCallback(const GoalHandleNavThroughPoses::WrappedResult &result);
 
     // Handle teleop instant actions
-    //void TeleopActionHandler(const vda5050_msgs::msg::Action &teleop_action);
+    // void TeleopActionHandler(const vda5050_msgs::msg::Action &teleop_action);
     // Handle factsheet instant actions
-    //void FactsheetRequestHandler(const vda5050_msgs::msg::Action &factsheet_request);
+    // void FactsheetRequestHandler(const vda5050_msgs::msg::Action &factsheet_request);
     // The callback function when the node receives an order error message.
     void OrderValidErrorCallback(const std_msgs::msg::String::ConstSharedPtr msg);
     // Sync service request. Return request result
@@ -215,16 +218,16 @@ private:
 
     vda5050_msgs::msg::ErrorReference CreateErrorReference(
         const std::string &reference_key, const std::string &reference_value);
-
 };
 
 extern "C"
 {
     RCLCPP_EXPORT void InitEnviroment();
-    RCLCPP_EXPORT VDAMissionClient* CreateVDAMissionClient(const char* ns);
-    RCLCPP_EXPORT void ExecuteOrder(VDAMissionClient *client, OrderWrapper* orderWrapper);
-    RCLCPP_EXPORT void ExecuteInstantActions(VDAMissionClient *client, InstantActionsWrapper* instantActionWrapper);
-    RCLCPP_EXPORT AGVStateWrapper* GetAGVState(VDAMissionClient *client);
-    RCLCPP_EXPORT FactsheetWrapper* GetFactsheet(VDAMissionClient *client);
-    RCLCPP_EXPORT VisualizationWrapper* GetVisualization(VDAMissionClient *client);
+    RCLCPP_EXPORT VDAMissionClient *CreateVDAMissionClient(const char *ns);
+    RCLCPP_EXPORT bool SpinNode(VDAMissionClient *nodePtr) noexcept;
+    RCLCPP_EXPORT void ExecuteOrder(VDAMissionClient *client, OrderWrapper *orderWrapper);
+    RCLCPP_EXPORT void ExecuteInstantActions(VDAMissionClient *client, InstantActionsWrapper *instantActionWrapper);
+    RCLCPP_EXPORT AGVStateWrapper *GetAGVState(VDAMissionClient *client);
+    RCLCPP_EXPORT FactsheetWrapper *GetFactsheet(VDAMissionClient *client);
+    RCLCPP_EXPORT VisualizationWrapper *GetVisualization(VDAMissionClient *client);
 }

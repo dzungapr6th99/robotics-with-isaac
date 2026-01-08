@@ -18,11 +18,13 @@ namespace RobotServer
         {
             string ConfigFolder = "ConfigApp";
             string ConfigLogFolder = "ConfigLog/nlog.config";
+            #if RELEASE
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 ConfigFolder = "../ConfigApp";
                 ConfigLogFolder = "../ConfigLog/nlog.config";
             }
+            #endif
             var logger = NLogBuilder.ConfigureNLog(ConfigLogFolder).GetCurrentClassLogger();
             IConfiguration configuration = null;
             var builder = WebApplication.CreateBuilder(args);

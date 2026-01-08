@@ -40,16 +40,21 @@ namespace VDA5050Message
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
         internal static extern void InstantActions_AddAction(IntPtr wrapper, IntPtr action);
 
-        public int HeaderId { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override int HeaderId {get { return base.HeaderId; } set { base.HeaderId = value; } }
 
-        public DateTime Timestamp { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override DateTime Timestamp {get { return base.Timestamp; } set { base.Timestamp = value; } }
 
-        public string Version { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override string Version {get { return base.Version; } set { base.Version = value; } }
 
-        public string Manufacturer { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override string Manufacturer {get { return base.Manufacturer; } set { base.Manufacturer = value; } }
 
-        public string SerialNumber { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override string SerialNumber {get { return base.SerialNumber; } set { base.SerialNumber = value; } }
         public List<InstantAction> Actions { get; set; } = new();
 
         public override void CreateWrapper()

@@ -86,11 +86,21 @@ namespace VDA5050Message
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr AGVState_GetSafetyState(IntPtr wrapper);
 
-        public int HeaderId { get; set; }
-        public DateTime Timestamp { get; set; }
-        public string Version { get; set; }
-        public string Manufacturer { get; set; }
-        public string SerialNumber { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override int HeaderId { get { return base.HeaderId; } set { base.HeaderId = value; } }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override DateTime Timestamp { get { return base.Timestamp; } set { base.Timestamp = value; } }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override string Version { get { return base.Version; } set { base.Version = value; } }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override string Manufacturer { get { return base.Manufacturer; } set { base.Manufacturer = value; } }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override string SerialNumber { get { return base.SerialNumber; } set { base.SerialNumber = value; } }
         public List<Map>? Maps { get; set; }
 
         public string OrderId { get; set; }
@@ -125,15 +135,6 @@ namespace VDA5050Message
 
         public override void GetDataWrapper(IntPtr prt)
         {
-            HeaderId = AGVState_GetHeaderId(prt);
-            var timestamp = VDA5050MessageBase.PtrToString(AGVState_GetTimestamp(prt));
-            if (DateTime.TryParse(timestamp, out var parsedTimestamp))
-            {
-                Timestamp = parsedTimestamp;
-            }
-            Version = VDA5050MessageBase.PtrToString(AGVState_GetVersion(prt)) ?? "";
-            Manufacturer = VDA5050MessageBase.PtrToString(AGVState_GetManufacturer(prt)) ?? "";
-            SerialNumber = VDA5050MessageBase.PtrToString(AGVState_GetSerialNumber(prt)) ?? "";
             OrderId = VDA5050MessageBase.PtrToString(AGVState_GetOrderId(prt)) ?? "";
             OrderUpdateId = unchecked((int)AGVState_GetOrderUpdateId(prt));
             ZoneSetId = VDA5050MessageBase.PtrToString(AGVState_GetZoneSetId(prt));

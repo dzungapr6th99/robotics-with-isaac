@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using VDA5050Message.Base;
 namespace VDA5050Message
@@ -32,11 +33,20 @@ namespace VDA5050Message
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr Factsheet_GetPhysicalParameters(IntPtr wrapper);
 
-        public int HeaderId { get; set; }
-        public DateTime Timestamp { get; set; }
-        public string Version { get; set; }
-        public string Manufacturer { get; set; }
-        public string SerialNumber { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override int HeaderId {get { return base.HeaderId; } set { base.HeaderId = value; } }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override DateTime Timestamp {get { return base.Timestamp; } set { base.Timestamp = value; } }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override string Version {get { return base.Version; } set { base.Version = value; } }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override string Manufacturer {get { return base.Manufacturer; } set { base.Manufacturer = value; } }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override string SerialNumber {get { return base.SerialNumber; } set { base.SerialNumber = value; } }
 
         public TypeSpecification TypeSpecification { get; set; }
         public PhysicalParameters PhysicalParameters { get; set; }

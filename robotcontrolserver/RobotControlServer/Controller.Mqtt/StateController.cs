@@ -11,10 +11,10 @@ namespace RobotControlServer.Controller.Mqtt
     {
         
 
-        [MqttRoute("{robotId}/state")]
-        public async Task ProcessState(string robotId,[FromPayload] State state)
+        [MqttRoute("{interfaceName}/{majorVersion}/{manufacturer}/{serialNumber}/state")]
+        public async Task ProcessState(string interfaceName, string majorVersion, string manufacturer, string serialNumber, [FromPayload] State state)
         {
-            CommonLog.logApi.Info("Receive state from {0}", ClientId);
+            CommonLog.logApi.Info("Receive state from {0}", serialNumber);
 
             if (string.IsNullOrEmpty(state.SerialNumber))
             {

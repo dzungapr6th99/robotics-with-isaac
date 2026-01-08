@@ -8,14 +8,19 @@
 #include <pluginlib/class_loader.hpp>
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 VDAMissionClient::VDAMissionClient(std::string ns) : rclcpp::Node("vda_miss_client_node", ns),
-  action_handler_loader_("VDAMissionClient",
-    "Vda5050ActionHandlerBase")
+                                                     action_handler_loader_("VDAMissionClient",
+                                                                            "Vda5050ActionHandlerBase")
 {
+    tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
+    tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+
     odometry_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(odom_topic_, rclcpp::SensorDataQoS(),
                                                                        std::bind(&VDAMissionClient::OdometryCallback, this,
                                                                                  std::placeholders::_1));
     client_ptr_ = rclcpp_action::create_client<NavThroughPoses>(this, "navigate_through_poses");
     agv_state_ = std::make_shared<vda5050_msgs::msg::AGVState>();
+    factsheet_ = std::make_shared<vda5050_msgs::msg::Factsheet>();
+    visualization_ = std::make_shared<vda5050_msgs::msg::Visualization>();
     send_goal_options = rclcpp_action::Client<NavThroughPoses>::SendGoalOptions();
     send_goal_options.goal_response_callback = std::bind(&VDAMissionClient::NavGoalResponseCallback, this, std::placeholders::_1);
     send_goal_options.feedback_callback = std::bind(&VDAMissionClient::NavFeedbackCallback, this, std::placeholders::_1, std::placeholders::_2);
@@ -40,10 +45,21 @@ VDAMissionClient::VDAMissionClient(std::string ns) : rclcpp::Node("vda_miss_clie
             RCLCPP_WARN(get_logger(), "Skip '%s' (%s): %s",
                         action_type.c_str(), plugin.c_str(), e.what());
         }
-    }}
+    }
+
+    state_update_timer_ = this->create_wall_timer(
+        std::chrono::milliseconds(100),
+        [this]()
+        {
+            (void)UpdateRobotPoseFromTf();
+            if (client_state_ == ClientState::RUNNING)
+            {
+                ExecuteOrderCallback();
+            }
+        });
+}
 VDAMissionClient::~VDAMissionClient()
 {
-
 }
 #pragma region Error Callback
 std::vector<vda5050_msgs::msg::ErrorReference> VDAMissionClient::CreateErrorReferenceList(
@@ -292,7 +308,6 @@ void VDAMissionClient::OdometryCallback(const nav_msgs::msg::Odometry::ConstShar
     agv_state_->velocity.vy = msg->twist.twist.linear.y;
     agv_state_->velocity.omega = msg->twist.twist.angular.z;
     visualization_->velocity = agv_state_->velocity;
-
 }
 
 #pragma endregion
@@ -533,37 +548,9 @@ void VDAMissionClient::ExecuteOrderCallback()
     }
     // For a navigatable robot, it has to get position initialized
     // Get robot position
-    if (factsheet_->physical_parameters.speed_max > 0)
+    if (!UpdateRobotPoseFromTf())
     {
-        try
-        {
-            // Find the latest map_T_base_link transform
-            geometry_msgs::msg::TransformStamped t = tf_buffer_->lookupTransform(
-                "map", "base_link",
-                tf2::TimePointZero);
-            agv_state_->agv_position.x = t.transform.translation.x;
-            agv_state_->agv_position.y = t.transform.translation.y;
-            visualization_->agv_position.x = t.transform.translation.x;
-            visualization_->agv_position.y = t.transform.translation.y;
-            // Calculate robot orientation
-            tf2::Quaternion quaternion;
-            tf2::fromMsg(t.transform.rotation, quaternion);
-            tf2::Matrix3x3 matrix(quaternion);
-            double roll, pitch, yaw;
-            matrix.getEulerYPR(yaw, pitch, roll);
-            agv_state_->agv_position.theta = yaw;
-            agv_state_->agv_position.position_initialized = true;
-            visualization_->agv_position.theta = yaw;
-            RCLCPP_INFO_ONCE(
-                this->get_logger(), "Robot position initialized");
-        }
-        catch (const tf2::TransformException &ex)
-        {
-            RCLCPP_WARN_THROTTLE(
-                this->get_logger(), *this->get_clock(), 120000,
-                "Could not get robot position: %s", ex.what());
-            return;
-        }
+        return;
     }
     if (client_state_ == ClientState::RUNNING)
     {
@@ -678,6 +665,44 @@ void VDAMissionClient::ExecuteOrderCallback()
     }
 }
 
+bool VDAMissionClient::UpdateRobotPoseFromTf()
+{
+    if (!tf_buffer_ || !agv_state_ || !visualization_)
+    {
+        return true;
+    }
+
+    try
+    {
+        geometry_msgs::msg::TransformStamped t = tf_buffer_->lookupTransform(
+            "map", "base_link", tf2::TimePointZero);
+
+        std::lock_guard<std::mutex> lock(state_mutex_);
+        agv_state_->agv_position.x = t.transform.translation.x;
+        agv_state_->agv_position.y = t.transform.translation.y;
+        visualization_->agv_position.x = t.transform.translation.x;
+        visualization_->agv_position.y = t.transform.translation.y;
+
+        tf2::Quaternion quaternion;
+        tf2::fromMsg(t.transform.rotation, quaternion);
+        tf2::Matrix3x3 matrix(quaternion);
+        double roll, pitch, yaw;
+        matrix.getEulerYPR(yaw, pitch, roll);
+        agv_state_->agv_position.theta = yaw;
+        agv_state_->agv_position.position_initialized = true;
+        visualization_->agv_position.theta = yaw;
+        RCLCPP_INFO_ONCE(this->get_logger(), "Robot position initialized");
+        return true;
+    }
+    catch (const tf2::TransformException &ex)
+    {
+        RCLCPP_WARN_THROTTLE(
+            this->get_logger(), *this->get_clock(), 120000,
+            "Could not get robot position: %s", ex.what());
+        return false;
+    }
+}
+
 void VDAMissionClient::OrderValidErrorCallback(const std_msgs::msg::String::ConstSharedPtr msg)
 {
     std::lock_guard<std::mutex> lock(state_mutex_);
@@ -763,9 +788,19 @@ void VDAMissionClient::PublishRobotState()
 #pragma endregion
 
 #pragma Spin node
-void VDAMissionClient::SpinOnce()
+bool VDAMissionClient::SpinOnce()
 {
-    rclcpp::spin_some(this->get_node_base_interface());
+    try
+    {
+        //_executor.spin_node_some(this->get_node_base_interface());
+        rclcpp::spin_some(this->get_node_base_interface());
+        return true;
+    }
+    catch (const std::exception &ex)
+    {
+        RCLCPP_ERROR(this->get_logger(), "Except when spin node %s", ex.what());
+        return false;
+    }
 }
 
 #pragma endregion
@@ -776,48 +811,53 @@ extern "C"
         rclcpp::init(0, nullptr);
     }
 
-    RCLCPP_EXPORT VDAMissionClient* CreateVDAMissionClient(const char* ns)
+    RCLCPP_EXPORT VDAMissionClient *CreateVDAMissionClient(const char *ns)
     {
         std::string name_space = ns;
         return new VDAMissionClient(name_space);
-    }   
-
-    RCLCPP_EXPORT void SpinNode(VDAMissionClient* nodePtr)
-    {
-        nodePtr->SpinOnce();
     }
 
-    RCLCPP_EXPORT void ExecuteOrder(VDAMissionClient *client, OrderWrapper* orderWrapper)
+    RCLCPP_EXPORT bool SpinNode(VDAMissionClient *nodePtr) noexcept
+    {
+        return nodePtr->SpinOnce();
+    }
+
+    RCLCPP_EXPORT void ExecuteOrder(VDAMissionClient *client, OrderWrapper *orderWrapper)
     {
         auto order_msg = orderWrapper->entity;
         auto order_ptr = std::make_shared<vda5050_msgs::msg::Order>(order_msg);
         client->ProcessOrder(order_ptr);
     }
 
-    RCLCPP_EXPORT void ExecuteInstantActions(VDAMissionClient *client, InstantActionsWrapper* instantActionsWrapper)
+    RCLCPP_EXPORT void ExecuteInstantActions(VDAMissionClient *client, InstantActionsWrapper *instantActionsWrapper)
     {
         auto instant_actions_msg = instantActionsWrapper->entity;
         auto instant_actions_ptr = std::make_shared<vda5050_msgs::msg::InstantActions>(instant_actions_msg);
         client->ProcessInstantActions(instant_actions_ptr);
     }
 
-    RCLCPP_EXPORT AGVStateWrapper* GetAGVState(VDAMissionClient *client){
+    RCLCPP_EXPORT AGVStateWrapper *GetAGVState(VDAMissionClient *client)
+    {
+
         auto agv_state_msg = client->agv_state_;
-        auto agv_state_wrapper = new AGVStateWrapper();
+        AGVStateWrapper* agv_state_wrapper = new AGVStateWrapper();
         agv_state_wrapper->entity = *agv_state_msg;
         return agv_state_wrapper;
     }
 
-    RCLCPP_EXPORT FactsheetWrapper* GetFactsheet(VDAMissionClient *client){
+    RCLCPP_EXPORT FactsheetWrapper *GetFactsheet(VDAMissionClient *client)
+    {
         auto factsheet_msg = client->factsheet_;
         auto factsheet_wrapper = new FactsheetWrapper();
         factsheet_wrapper->entity = *factsheet_msg;
         return factsheet_wrapper;
     }
 
-    RCLCPP_EXPORT VisualizationWrapper* GetVisualization(VDAMissionClient *client){
+    RCLCPP_EXPORT VisualizationWrapper *GetVisualization(VDAMissionClient *client)
+    {
+
         auto visualization_msg = client->visualization_;
-        auto visualization_wrapper = new VisualizationWrapper();
+        VisualizationWrapper *visualization_wrapper = new VisualizationWrapper();
         visualization_wrapper->entity = *visualization_msg;
         return visualization_wrapper;
     }

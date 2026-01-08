@@ -1,2 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<VDA5050Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" interfaceName="ntd" majorVersion="v2.1.0" manufacturer="nthb" serialNumber="Robot1" ipHost="127.0.0.1" portHost="2006" />
+<VDA5050Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" interfaceName="ntd" majorVersion="v2.1.0" manufacturer="nthb" serialNumber="Robot1" ipHost="127.0.0.1" portHost="3011" />

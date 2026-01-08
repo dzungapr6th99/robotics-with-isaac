@@ -10,15 +10,16 @@ namespace VDA5050Message
 {
     public class Connection : VDA5050MessageBase
     {
-        public int HeaderId { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override int HeaderId { get { return base.HeaderId; } set { base.HeaderId = value; } }
 
-        public DateTime Timestamp { get; set; }
-
-        public string Version { get; set; }
-
-        public string Manufacturer { get; set; }
-
-        public string SerialNumber { get; set; }
+        public override DateTime Timestamp { get { return base.Timestamp; } set { base.Timestamp = value; } }
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override string Version { get { return base.Version; } set { base.Version = value; } }
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override string Manufacturer { get { return base.Manufacturer; } set { base.Manufacturer = value; } }
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public override string SerialNumber { get { return base.SerialNumber; } set { base.SerialNumber = value; } }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ConnectionState ConnectionState { get; set; }

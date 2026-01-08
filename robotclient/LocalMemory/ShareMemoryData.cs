@@ -22,10 +22,10 @@ namespace LocalMemmory
             if (configuration == null)
             {
                 RobotConfiguration.IP = "127.0.0.1";
-                RobotConfiguration.Port = 2006;
+                RobotConfiguration.Port = 3011;
                 RobotConfiguration.InterfaceName = "ntd";
                 RobotConfiguration.MajorVersion = "v2.1.0";
-                RobotConfiguration.Manufacturer = "msvn";
+                RobotConfiguration.Manufacturer = "nthb";
                 RobotConfiguration.SerialNumber = "Robot1";
                 CommonFunc.SaveToXmlFile<VDA5050Configuration>(RobotConfiguration, ConfigData.PathStoreConfig);
             }

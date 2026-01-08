@@ -25,7 +25,14 @@ namespace MqttService
         private string? _topicRobotLevel;
         private readonly IVDARosClient _vdaRosClient;
         private Disruptor<DataContainer> _disruptor;
+        private int _reconnectTimes = 0;
         private RingBuffer<DataContainer> _ringBuffer;
+        private CancellationToken _cancellationToken;
+        private Thread _threadKeepConnect;
+        private bool _isConnect = false;
+        private int _headerIdFactsheets = 0;
+        private int _headerIdVisualization = 0;
+        private int _headerIdState = 0;
         public MqttClientService(IVDARosClient vdaRosClient)
         {
             _vdaRosClient = vdaRosClient;
@@ -36,6 +43,8 @@ namespace MqttService
             _disruptor = new Disruptor<DataContainer>(() => new DataContainer(), 1024, TaskScheduler.Default, ProducerType.Single, new BlockingWaitStrategy());
             _ringBuffer = _disruptor.RingBuffer;
             _disruptor.HandleEventsWith(this);
+            _vdaRosClient.SubscribeData(_ringBuffer);
+            _disruptor.Start();
         }
 
         public async Task ConnectToBroker(CancellationToken cancellationToken = default)
@@ -43,17 +52,32 @@ namespace MqttService
             IPEndPoint endpoints = IPEndPoint.Parse($"{ShareMemoryData.RobotConfiguration.IP}:{ShareMemoryData.RobotConfiguration.Port}");
             _mqttOptions = new MqttClientOptionsBuilder().WithClientId(ConfigData.MqttClientId).WithEndPoint(endpoints).WithWillTopic("").Build();
             _topicRobotLevel = $"{ShareMemoryData.RobotConfiguration.InterfaceName}/{ShareMemoryData.RobotConfiguration.MajorVersion}/{ShareMemoryData.RobotConfiguration.Manufacturer}/{ShareMemoryData.RobotConfiguration.SerialNumber}";
-            var topics = new[]
+
+            _cancellationToken = cancellationToken;
+            await _mqttClient.ConnectAsync(_mqttOptions, _cancellationToken);
+
+            await _mqttClient.SubscribeAsync($"{_topicRobotLevel}/#");
+
+            var connection = new Connection()
             {
-                $"{_topicRobotLevel}/{ConstData.Mqtt.Topic.ORDER}",
-                $"{_topicRobotLevel}/{ConstData.Mqtt.Topic.INSTANTACTIONS}",
+                HeaderId = _reconnectTimes++,
+                ConnectionState = ConnectionState.ONLINE,
+                SerialNumber = ShareMemoryData.RobotConfiguration.SerialNumber,
+                Timestamp = DateTime.Now,
+                Manufacturer = ShareMemoryData.RobotConfiguration.Manufacturer,
+                Version = ShareMemoryData.RobotConfiguration.MajorVersion,
             };
-            await _mqttClient.ConnectAsync(_mqttOptions, cancellationToken);
-            foreach (var topic in topics)
-            {
-                await _mqttClient.SubscribeAsync(topic);
-                CommonLog.log.Info($"Subscribed to: {topic}");
-            }
+            string connMsg = JsonSerializer.Serialize(connection, _jsonSerializerOptions);
+            SendMessage(ConstData.Mqtt.Topic.CONNECTION, connMsg);
+            _isConnect = true;
+            _threadKeepConnect = new Thread(ThreadKeepConnect);
+            _threadKeepConnect.IsBackground = true;
+            _threadKeepConnect.Start();
+            _threadReceiveMessage = new Thread(ThreadReceiveMessage);
+            _threadReceiveMessage.IsBackground = true;
+            _threadReceiveMessage.Start();
+            CommonLog.log.Info("Connect with Mqtt Server Success");
+
         }
 
         public void StartReceiveMessage()
@@ -105,19 +129,27 @@ namespace MqttService
         public void OnEvent(DataContainer data, long sequence, bool endOfBatch)
         {
             string msg = string.Empty;
-            string topic = data.Topic.Split('/').Last();
-            switch (topic)
+            VDA5050MessageBase messageBase = data.Message;
+            messageBase.Timestamp = DateTime.Now;
+            messageBase.Version = ShareMemoryData.RobotConfiguration.MajorVersion;  
+            messageBase.Manufacturer = ShareMemoryData.RobotConfiguration.Manufacturer;
+            messageBase.SerialNumber = ShareMemoryData.RobotConfiguration.SerialNumber; 
+
+            switch (data.Topic)
             {
                 case ConstData.Mqtt.Topic.VISUALIZATION:
-                    msg = JsonSerializer.Serialize((Visualization)data.Message, _jsonSerializerOptions);
+                    messageBase.HeaderId = ++_headerIdVisualization;
+                    msg = JsonSerializer.Serialize((Visualization)messageBase, _jsonSerializerOptions);
                     SendMessage(data.Topic, msg);
                     break;
                 case ConstData.Mqtt.Topic.STATE:
-                    msg = JsonSerializer.Serialize((State)data.Message, _jsonSerializerOptions);
+                    messageBase.HeaderId = ++_headerIdState;
+                    msg = JsonSerializer.Serialize((State)messageBase, _jsonSerializerOptions);
                     SendMessage(data.Topic, msg);
                     break;
                 case ConstData.Mqtt.Topic.FACTSHEET:
-                    msg = JsonSerializer.Serialize((Factsheet)data.Message, _jsonSerializerOptions);
+                    messageBase.HeaderId = ++_headerIdFactsheets;
+                    msg = JsonSerializer.Serialize((Factsheet)messageBase, _jsonSerializerOptions);
                     SendMessage(data.Topic, msg);
                     break;
 
@@ -129,13 +161,20 @@ namespace MqttService
         {
             try
             {
-
-                var applicationMessage = new MqttApplicationMessageBuilder().WithTopic($"{_topicRobotLevel}/{topic}").WithPayload(msgJson).Build();
-                var sent = await _mqttClient.PublishAsync(applicationMessage);
-
-                if (sent.IsSuccess)
+                if (_mqttClient.IsConnected)
                 {
-                    return true;
+                    var applicationMessage = new MqttApplicationMessageBuilder().WithTopic($"{_topicRobotLevel}/{topic}").WithPayload(msgJson).Build();
+                    var sent = await _mqttClient.PublishAsync(applicationMessage);
+
+                    if (sent.IsSuccess)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
                 }
                 else
                 {
@@ -148,6 +187,41 @@ namespace MqttService
                 return false;
             }
 
+        }
+        private void ThreadKeepConnect()
+        {
+            while (_isConnect)
+            {
+                try
+                {
+                    if (_mqttClient.IsConnected)
+                    {
+                        Thread.Sleep(1000);
+                    }
+                    else
+                    {
+                        _mqttClient.ReconnectAsync(_cancellationToken).Wait();
+
+                        var connection = new Connection()
+                        {
+                            HeaderId = _reconnectTimes++,
+                            ConnectionState = ConnectionState.ONLINE,
+                            SerialNumber = ShareMemoryData.RobotConfiguration.SerialNumber,
+                            Timestamp = DateTime.Now,
+                            Manufacturer = ShareMemoryData.RobotConfiguration.Manufacturer,
+                            Version = ShareMemoryData.RobotConfiguration.MajorVersion,
+                        };
+                        string connMsg = JsonSerializer.Serialize(connection, _jsonSerializerOptions);
+                        SendMessage(ConstData.Mqtt.Topic.CONNECTION, connMsg);
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    CommonLog.log.Error(ex);
+                    Thread.Sleep(1000);
+                }
+            }
         }
 
     }
