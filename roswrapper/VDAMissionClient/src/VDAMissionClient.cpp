@@ -507,6 +507,82 @@ void VDAMissionClient::ResumeOrder(const vda5050_msgs::msg::Action &action)
     UpdateActionState(action, VDAActionState::FINISHED);
 }
 
+void VDAMissionClient::InitAGVState()
+{
+    RCLCPP_DEBUG(this->get_logger(), "Initialization order information");
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    size_t num_last_order_actions = num_actions_;
+    num_actions_ = 0;
+    for (const auto &vda5050_node : current_order_->nodes)
+    {
+        num_actions_ += vda5050_node.actions.size();
+    }
+    agv_state_->operating_mode = vda5050_msgs::msg::AGVState().AUTOMATIC;
+    agv_state_->safety_state.e_stop = vda5050_msgs::msg::SafetyState().NONE;
+    agv_state_->safety_state.field_violation = false;
+    agv_state_->order_id = current_order_->order_id;
+    agv_state_->last_node_id = current_order_->nodes[0].node_id;
+    agv_state_->driving = false;
+    agv_state_->informations.clear();
+    agv_state_->errors.clear();
+    agv_state_->node_states.clear();
+    agv_state_->edge_states.clear();
+    agv_state_->paused = false;
+    reached_waypoint_ = true;
+
+    // clear action states from last order
+    if (num_last_order_actions > 0 && agv_state_->action_states.size() >= num_last_order_actions)
+    {
+        agv_state_->action_states.erase(
+            agv_state_->action_states.begin(),
+            agv_state_->action_states.begin() + num_last_order_actions);
+    }
+    // clear completed instant actions
+    agv_state_->action_states.erase(
+        std::remove_if(
+            agv_state_->action_states.begin(),
+            agv_state_->action_states.end(),
+            [](const VDAActionState &state)
+            {
+                return state.action_status == VDAActionState::FINISHED ||
+                       state.action_status == VDAActionState::FAILED;
+            }),
+        agv_state_->action_states.end());
+
+    size_t action_index = 0;
+    for (const auto &vda5050_node : current_order_->nodes)
+    {
+        auto node_state = vda5050_msgs::msg::NodeState();
+        node_state.node_id = vda5050_node.node_id;
+        node_state.sequence_id = vda5050_node.sequence_id;
+        node_state.node_description = vda5050_node.node_description;
+        node_state.released = vda5050_node.released;
+        agv_state_->node_states.push_back(node_state);
+        for (const auto &vda5050_action : vda5050_node.actions)
+        {
+            auto actionState = VDAActionState();
+            actionState.action_id = vda5050_action.action_id;
+            actionState.action_type = vda5050_action.action_type;
+            actionState.action_description = vda5050_action.action_description;
+            actionState.action_status =
+                VDAActionState::WAITING;
+            agv_state_->action_states.insert(agv_state_->action_states.begin() + action_index,
+                                             actionState);
+            action_index++;
+        }
+    }
+    agv_state_->node_states.erase(
+        agv_state_->node_states.begin());
+    reached_waypoint_ = true;
+    RCLCPP_DEBUG(
+        this->get_logger(),
+        "Obtained %ld node states and %ld action states",
+        agv_state_->node_states.size(),
+        agv_state_->action_states.size());
+
+    client_state_ = ClientState::RUNNING;
+}
+
 void VDAMissionClient::ProcessOrder(const vda5050_msgs::msg::Order::ConstSharedPtr msg)
 {
     RCLCPP_INFO(
