@@ -17,6 +17,7 @@ namespace LocalMemmory
 
         public static void LoadXmlConfig()
         {
+            CommonLog.log.Info("Loading VDA5050 Configuration from XML file...");
             VDA5050Configuration? configuration = CommonFunc.LoadFromXmlFile<VDA5050Configuration>(ConfigData.PathStoreConfig);
             if (configuration == null)
             {
@@ -24,7 +25,7 @@ namespace LocalMemmory
                 RobotConfiguration.Port = 2006;
                 RobotConfiguration.InterfaceName = "ntd";
                 RobotConfiguration.MajorVersion = "v2.1.0";
-                RobotConfiguration.Manufacturer = "nthb";
+                RobotConfiguration.Manufacturer = "msvn";
                 RobotConfiguration.SerialNumber = "Robot1";
                 CommonFunc.SaveToXmlFile<VDA5050Configuration>(RobotConfiguration, ConfigData.PathStoreConfig);
             }
@@ -32,7 +33,7 @@ namespace LocalMemmory
             {
                 RobotConfiguration = configuration;
             }
-
+            CommonLog.log.Info("VDA5050 Configuration loaded successfully.");
         }
 
         public static string GetParentTopic()

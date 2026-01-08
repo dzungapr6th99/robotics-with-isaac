@@ -6,6 +6,7 @@ using NLog.Web;
 using RobotClient.Startups;
 using RobotClient.Worker;
 using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
 
 namespace RobotClient
 {
@@ -15,6 +16,14 @@ namespace RobotClient
         {
             string ConfigFolder = "ConfigApp";
             string ConfigLogFolder = "ConfigLog/nlog.config";
+            #if RELEASE 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                ConfigFolder = "../ConfigApp";
+                ConfigLogFolder = "../ConfigLog/nlog.config";
+            }
+            #endif
+
             var logger = NLogBuilder.ConfigureNLog(ConfigLogFolder).GetCurrentClassLogger();
             IConfiguration configuration = null;
             var builder = WebApplication.CreateBuilder(args);

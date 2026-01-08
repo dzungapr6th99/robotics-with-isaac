@@ -58,16 +58,59 @@ set(vda_wrapper_sources
 
 set(vda_mission_sources
   src/VDAMissionClient.cpp
-  #src/VDAActionAMRHandler.cpp
+)
+
+set(vda_action_handler_sources
+  src/VDAActionAMRHandler.cpp
 )
 
 # Build shared libraries
 add_library(VDAWrapper SHARED ${vda_wrapper_sources})
 add_library(VDAMissionClient SHARED ${vda_mission_sources})
+add_library(vda_action_amr_handler SHARED ${vda_action_handler_sources})
 
 ament_target_dependencies(VDAWrapper rclcpp geometry_msgs nav2_msgs lifecycle_msgs rclcpp_action vda5050_msgs sensor_msgs tf2_geometry_msgs tf2 pluginlib)
 ament_target_dependencies(VDAMissionClient rclcpp geometry_msgs nav2_msgs lifecycle_msgs rclcpp_action vda5050_msgs sensor_msgs tf2_geometry_msgs tf2 pluginlib)
+ament_target_dependencies(
+  vda_action_amr_handler
+  rclcpp
+  rclcpp_action
+  geometry_msgs
+  nav_msgs
+  nav2_msgs
+  lifecycle_msgs
+  sensor_msgs
+  tf2
+  tf2_geometry_msgs
+  vda5050_msgs
+  pluginlib
+)
 target_link_libraries(VDAMissionClient VDAWrapper)
+
+pluginlib_export_plugin_description_file(${PROJECT_NAME} vda_action_handlers.xml)
+
+install(
+  TARGETS
+    VDAWrapper
+    VDAMissionClient
+    vda_action_amr_handler
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
+install(
+  FILES vda_action_handlers.xml
+  DESTINATION share/${PROJECT_NAME}
+)
+
+ament_export_include_directories(include)
+ament_export_dependencies(pluginlib)
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

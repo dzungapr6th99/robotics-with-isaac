@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<library path="vda_action_amr_handler">
+  <class
+    name="VDAMissionClient/VDAActionAMRHandler"
+    type="VDAActionAMRHandler"
+    base_class_type="Vda5050ActionHandlerBase">
+    <description>Example VDA5050 action handler for lift/dock actions.</description>
+  </class>
+</library>

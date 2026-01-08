@@ -8,8 +8,8 @@
 #include <pluginlib/class_loader.hpp>
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 VDAMissionClient::VDAMissionClient(std::string ns) : rclcpp::Node("vda_miss_client_node", ns),
-  action_handler_loader_("vda5050_action_handler",
-    "isaac_ros::mission_client::Vda5050ActionHandlerBase")
+  action_handler_loader_("VDAMissionClient",
+    "Vda5050ActionHandlerBase")
 {
     odometry_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(odom_topic_, rclcpp::SensorDataQoS(),
                                                                        std::bind(&VDAMissionClient::OdometryCallback, this,
@@ -21,8 +21,8 @@ VDAMissionClient::VDAMissionClient(std::string ns) : rclcpp::Node("vda_miss_clie
     send_goal_options.feedback_callback = std::bind(&VDAMissionClient::NavFeedbackCallback, this, std::placeholders::_1, std::placeholders::_2);
     send_goal_options.result_callback = std::bind(&VDAMissionClient::NavResultCallback, this, std::placeholders::_1);
     handler_list = {
-        {"lift", "isaac_ros_vda5050_client/VDAActionAMRHandler"},
-        {"dock", "isaac_ros_vda5050_client/VDAActionAMRHandler"},
+        {"lift", "VDAMissionClient/VDAActionAMRHandler"},
+        {"dock", "VDAMissionClient/VDAActionAMRHandler"},
     };
 
     for (const auto &item : handler_list)
@@ -41,7 +41,10 @@ VDAMissionClient::VDAMissionClient(std::string ns) : rclcpp::Node("vda_miss_clie
                         action_type.c_str(), plugin.c_str(), e.what());
         }
     }}
+VDAMissionClient::~VDAMissionClient()
+{
 
+}
 #pragma region Error Callback
 std::vector<vda5050_msgs::msg::ErrorReference> VDAMissionClient::CreateErrorReferenceList(
     const std::vector<std::pair<std::string, std::string>> &error_refs)

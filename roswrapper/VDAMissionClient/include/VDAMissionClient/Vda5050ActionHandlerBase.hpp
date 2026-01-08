@@ -1,4 +1,7 @@
+#pragma once
+
 #include "vda5050_msgs/msg/action.hpp"
+#include <string>
 class VDAMissionClient;
 class Vda5050ActionHandlerBase
 {
@@ -26,7 +29,5 @@ public:
 protected:
     Vda5050ActionHandlerBase() {}
     VDAMissionClient *client_node_;
-
-    
 };
 // namespace mission_client

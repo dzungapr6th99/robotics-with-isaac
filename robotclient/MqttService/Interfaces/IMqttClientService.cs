@@ -8,7 +8,7 @@ namespace MqttService.Interfaces
 {
     public interface IMqttClientService
     {
-        public Task ConnectToBroker();
+        public Task ConnectToBroker(CancellationToken cancellationToken = default);
         void StartReceiveMessage();
     }
 }

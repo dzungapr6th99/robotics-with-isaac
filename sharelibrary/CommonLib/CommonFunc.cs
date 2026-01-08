@@ -29,7 +29,7 @@ namespace CommonLib
         public static T? LoadFromXmlFile<T>(string filePath)
         {
             if (!File.Exists(filePath))
-                throw new FileNotFoundException("XML file not found", filePath);
+                return default(T);
 
             var serializer = new XmlSerializer(typeof(T));
 

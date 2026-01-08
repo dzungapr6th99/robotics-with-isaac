@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include "VDAMissionClient/Vda5050ActionHandlerBase.hpp"
 #include "VDAMissionClient/VDAMissionClient.hpp"

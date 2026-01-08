@@ -38,7 +38,7 @@ namespace MqttService
             _disruptor.HandleEventsWith(this);
         }
 
-        public async Task ConnectToBroker()
+        public async Task ConnectToBroker(CancellationToken cancellationToken = default)
         {
             IPEndPoint endpoints = IPEndPoint.Parse($"{ShareMemoryData.RobotConfiguration.IP}:{ShareMemoryData.RobotConfiguration.Port}");
             _mqttOptions = new MqttClientOptionsBuilder().WithClientId(ConfigData.MqttClientId).WithEndPoint(endpoints).WithWillTopic("").Build();
@@ -48,7 +48,7 @@ namespace MqttService
                 $"{_topicRobotLevel}/{ConstData.Mqtt.Topic.ORDER}",
                 $"{_topicRobotLevel}/{ConstData.Mqtt.Topic.INSTANTACTIONS}",
             };
-            await _mqttClient.ConnectAsync(_mqttOptions);
+            await _mqttClient.ConnectAsync(_mqttOptions, cancellationToken);
             foreach (var topic in topics)
             {
                 await _mqttClient.SubscribeAsync(topic);
@@ -71,8 +71,8 @@ namespace MqttService
                 {
                     string message = Encoding.ASCII.GetString(e.ApplicationMessage.Payload);
                     List<string> topicLevel = e.ApplicationMessage.Topic.Split('/').ToList();
-                    
-                        
+
+
                     string topic = topicLevel.Last();
                     ProcessMessage(topic, e.ClientId, message);
                     return Task.CompletedTask;
@@ -105,7 +105,7 @@ namespace MqttService
         public void OnEvent(DataContainer data, long sequence, bool endOfBatch)
         {
             string msg = string.Empty;
-            string topic  = data.Topic.Split('/').Last();
+            string topic = data.Topic.Split('/').Last();
             switch (topic)
             {
                 case ConstData.Mqtt.Topic.VISUALIZATION:
@@ -127,15 +127,24 @@ namespace MqttService
 
         public async Task<bool> SendMessage(string topic, string msgJson)
         {
-            var applicationMessage = new MqttApplicationMessageBuilder().WithTopic($"{_topicRobotLevel}/{topic}").WithPayload(msgJson).Build();
-            var sent = await _mqttClient.PublishAsync(applicationMessage);
+            try
+            {
 
-            if (sent.IsSuccess)
-            {
-                return true;
+                var applicationMessage = new MqttApplicationMessageBuilder().WithTopic($"{_topicRobotLevel}/{topic}").WithPayload(msgJson).Build();
+                var sent = await _mqttClient.PublishAsync(applicationMessage);
+
+                if (sent.IsSuccess)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
-            else
+            catch (Exception ex)
             {
+                CommonLog.log.Error(ex, "Error while sending MQTT message {0} with error {1}", topic, ex.Message);
                 return false;
             }
 
