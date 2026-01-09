@@ -204,6 +204,15 @@ extern "C"
         return wrapper->entity.errors.data();
     }
 
+    RCLCPP_EXPORT const Error *AGVState_GetErrorAt(AGVStateWrapper *wrapper, int index)
+    {
+        if (!wrapper || index < 0 || index >= static_cast<int>(wrapper->entity.errors.size()))
+        {
+            return nullptr;
+        }
+        return &wrapper->entity.errors[static_cast<size_t>(index)];
+    }
+
     RCLCPP_EXPORT const Info *AGVState_GetInformations(AGVStateWrapper *wrapper, int *length)
     {
         if (length)

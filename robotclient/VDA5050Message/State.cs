@@ -84,6 +84,12 @@ namespace VDA5050Message
         internal static extern IntPtr AGVState_GetBatteryState(IntPtr wrapper);
 
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr AGVState_GetErrors(IntPtr wrapper, out int length);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr AGVState_GetErrorAt(IntPtr wrapper, int index);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr AGVState_GetSafetyState(IntPtr wrapper);
 
 
@@ -216,6 +222,21 @@ namespace VDA5050Message
             {
                 BatteryState ??= new BatteryState();
                 BatteryState.GetDataWrapper(batteryStatePtr);
+            }
+
+            Errors ??= new List<Error>();
+            Errors.Clear();
+            AGVState_GetErrors(prt, out var errorCount);
+            for (var i = 0; i < errorCount; i++)
+            {
+                var errorPtr = AGVState_GetErrorAt(prt, i);
+                if (errorPtr == IntPtr.Zero)
+                {
+                    continue;
+                }
+                var error = new Error();
+                error.GetDataWrapper(errorPtr);
+                Errors.Add(error);
             }
 
             var safetyStatePtr = AGVState_GetSafetyState(prt);
