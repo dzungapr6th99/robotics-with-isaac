@@ -31,7 +31,8 @@ namespace VDA5050Message.Base
         public override void GetDataWrapper(IntPtr prt)
         {
             var eStop = VDA5050MessageBase.PtrToString(SafetyState_GetEStop(prt));
-            if (Enum.TryParse<EStop>(eStop, true, out var parsedEStop))
+            var normalizedEStop = eStop?.Replace("_", "");
+            if (Enum.TryParse<EStop>(normalizedEStop, true, out var parsedEStop))
             {
                 EStop = parsedEStop;
             }

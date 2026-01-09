@@ -55,4 +55,40 @@ extern "C"
     {
         nodePositionWrapper->entity.map_description = data ? data : "";
     }
+
+    // ---- Getters for NodePosition message (used in NodeState.position) ----
+    RCLCPP_EXPORT double NodePosition_GetX(const vda5050_msgs::msg::NodePosition *pos)
+    {
+        return pos ? pos->x : 0.0;
+    }
+
+    RCLCPP_EXPORT double NodePosition_GetY(const vda5050_msgs::msg::NodePosition *pos)
+    {
+        return pos ? pos->y : 0.0;
+    }
+
+    RCLCPP_EXPORT double NodePosition_GetTheta(const vda5050_msgs::msg::NodePosition *pos)
+    {
+        return pos ? pos->theta : 0.0;
+    }
+
+    RCLCPP_EXPORT float NodePosition_GetAllowedDeviationXY(const vda5050_msgs::msg::NodePosition *pos)
+    {
+        return pos ? pos->allowed_deviation_x_y : 0.0f;
+    }
+
+    RCLCPP_EXPORT float NodePosition_GetAllowedDeviationTheta(const vda5050_msgs::msg::NodePosition *pos)
+    {
+        return pos ? pos->allowed_deviation_theta : 0.0f;
+    }
+
+    RCLCPP_EXPORT const char *NodePosition_GetMapId(const vda5050_msgs::msg::NodePosition *pos)
+    {
+        return pos ? pos->map_id.c_str() : "";
+    }
+
+    RCLCPP_EXPORT const char *NodePosition_GetMapDescription(const vda5050_msgs::msg::NodePosition *pos)
+    {
+        return pos ? pos->map_description.c_str() : "";
+    }
 }

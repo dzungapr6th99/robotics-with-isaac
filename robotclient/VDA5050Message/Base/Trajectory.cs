@@ -29,6 +29,21 @@ namespace VDA5050Message.Base
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
         internal static extern void Trajectory_AddControlPoint(IntPtr wrapper, IntPtr controlPoint);
 
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int Trajectory_GetDegree(IntPtr trajectory);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int Trajectory_GetKnotVectorCount(IntPtr trajectory);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern double Trajectory_GetKnotVectorAt(IntPtr trajectory, int index);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int Trajectory_GetControlPointsCount(IntPtr trajectory);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr Trajectory_GetControlPointAt(IntPtr trajectory, int index);
+
         public int Degree { get; set; }
 
         public List<double> KnotVector { get; set; }
@@ -70,7 +85,30 @@ namespace VDA5050Message.Base
 
         public override void GetDataWrapper(IntPtr prt)
         {
-            // Trajectory is used only as a nested "set-only" structure inside Edge.
+            Degree = Trajectory_GetDegree(prt);
+
+            var knotCount = Trajectory_GetKnotVectorCount(prt);
+            KnotVector ??= new List<double>();
+            KnotVector.Clear();
+            for (var i = 0; i < knotCount; i++)
+            {
+                KnotVector.Add(Trajectory_GetKnotVectorAt(prt, i));
+            }
+
+            var cpCount = Trajectory_GetControlPointsCount(prt);
+            ControlPoints ??= new List<ControlPoint>();
+            ControlPoints.Clear();
+            for (var i = 0; i < cpCount; i++)
+            {
+                var cpPtr = Trajectory_GetControlPointAt(prt, i);
+                if (cpPtr == IntPtr.Zero)
+                {
+                    continue;
+                }
+                var cp = new ControlPoint();
+                cp.GetDataWrapper(cpPtr);
+                ControlPoints.Add(cp);
+            }
         }
 
         ~Trajectory()

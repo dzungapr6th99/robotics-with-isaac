@@ -63,16 +63,6 @@ namespace VDA5050Message
 
         public override void GetDataWrapper(IntPtr prt)
         {
-            HeaderId = Factsheet_GetHeaderId(prt);
-            var timestamp = VDA5050MessageBase.PtrToString(Factsheet_GetTimestamp(prt));
-            if (DateTime.TryParse(timestamp, out var parsedTimestamp))
-            {
-                Timestamp = parsedTimestamp;
-            }
-            Version = VDA5050MessageBase.PtrToString(Factsheet_GetVersion(prt)) ?? "";
-            Manufacturer = VDA5050MessageBase.PtrToString(Factsheet_GetManufacturer(prt)) ?? "";
-            SerialNumber = VDA5050MessageBase.PtrToString(Factsheet_GetSerialNumber(prt)) ?? "";
-
             var typeSpecPtr = Factsheet_GetTypeSpecification(prt);
             if (typeSpecPtr != IntPtr.Zero)
             {

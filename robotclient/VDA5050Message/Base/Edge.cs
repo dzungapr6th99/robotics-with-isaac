@@ -183,6 +183,9 @@ namespace VDA5050Message.Base
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
         internal static extern bool EdgeState_GetReleased(IntPtr wrapper);
 
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr EdgeState_GetTrajectory(IntPtr wrapper);
+
         public string EdgeId { get; set; }
         public int SequenceId { get; set; }
         public string? EdgeDescription { get; set; }
@@ -200,6 +203,13 @@ namespace VDA5050Message.Base
             SequenceId = EdgeState_GetSequenceId(prt);
             EdgeDescription = VDA5050MessageBase.PtrToString(EdgeState_GetEdgeDescription(prt));
             Released = EdgeState_GetReleased(prt);
+
+            var trajectoryPtr = EdgeState_GetTrajectory(prt);
+            if (trajectoryPtr != IntPtr.Zero)
+            {
+                Trajectory ??= new Trajectory();
+                Trajectory.GetDataWrapper(trajectoryPtr);
+            }
         }
     }
 

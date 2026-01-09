@@ -132,6 +132,27 @@ namespace VDA5050Message.Base
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         internal static extern void NodePosition_SetMapDescription(IntPtr wrapper, string? mapDescription);
 
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern double NodePosition_GetX(IntPtr pos);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern double NodePosition_GetY(IntPtr pos);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern double NodePosition_GetTheta(IntPtr pos);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern float NodePosition_GetAllowedDeviationXY(IntPtr pos);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern float NodePosition_GetAllowedDeviationTheta(IntPtr pos);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr NodePosition_GetMapId(IntPtr pos);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr NodePosition_GetMapDescription(IntPtr pos);
+
         public double X { get; set; }
 
         public double Y { get; set; }
@@ -177,7 +198,13 @@ namespace VDA5050Message.Base
 
         public override void GetDataWrapper(IntPtr prt)
         {
-            // NodePosition is used only as a nested "set-only" structure inside Node.
+            X = NodePosition_GetX(prt);
+            Y = NodePosition_GetY(prt);
+            Theta = NodePosition_GetTheta(prt);
+            AllowedDeviationXY = NodePosition_GetAllowedDeviationXY(prt);
+            AllowedDeviationTheta = NodePosition_GetAllowedDeviationTheta(prt);
+            MapId = VDA5050MessageBase.PtrToString(NodePosition_GetMapId(prt)) ?? "";
+            MapDescription = VDA5050MessageBase.PtrToString(NodePosition_GetMapDescription(prt));
         }
 
         ~NodePosition()
@@ -205,11 +232,14 @@ namespace VDA5050Message.Base
 
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
         internal static extern bool NodeState_GetReleased(IntPtr wrapper);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr NodeState_GetPosition(IntPtr wrapper);
         public string NodeId { get; set; }
         public int SequenceId { get; set; }
         public string? NodeDescription { get; set; }
         public bool Released { get; set; }
-        public Node? NodePosition { get; set; }
+        public NodePosition? Position { get; set; }
 
         public override void CreateWrapper()
         {
@@ -222,6 +252,13 @@ namespace VDA5050Message.Base
             SequenceId = NodeState_GetSequenceId(prt);
             NodeDescription = VDA5050MessageBase.PtrToString(NodeState_GetNodeDescription(prt));
             Released = NodeState_GetReleased(prt);
+
+            var posPtr = NodeState_GetPosition(prt);
+            if (posPtr != IntPtr.Zero)
+            {
+                Position ??= new NodePosition();
+                Position.GetDataWrapper(posPtr);
+            }
         }
     }
 

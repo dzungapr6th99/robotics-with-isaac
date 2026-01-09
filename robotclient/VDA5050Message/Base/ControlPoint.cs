@@ -27,6 +27,15 @@ namespace VDA5050Message.Base
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
         internal static extern void ControlPoint_SetWeight(IntPtr wrapper, double weight);
 
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern double ControlPoint_GetX(IntPtr cp);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern double ControlPoint_GetY(IntPtr cp);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern double ControlPoint_GetWeight(IntPtr cp);
+
         public double X { get; set; }
 
         public double Y { get; set; }
@@ -54,7 +63,9 @@ namespace VDA5050Message.Base
 
         public override void GetDataWrapper(IntPtr prt)
         {
-            // ControlPoint is used only as a nested "set-only" structure inside Trajectory.
+            X = ControlPoint_GetX(prt);
+            Y = ControlPoint_GetY(prt);
+            Weight = ControlPoint_GetWeight(prt);
         }
 
         ~ControlPoint()

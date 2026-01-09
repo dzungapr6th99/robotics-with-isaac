@@ -75,6 +75,12 @@ namespace VDA5050Message
         internal static extern IntPtr AGVState_GetVelocity(IntPtr wrapper);
 
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr AGVState_GetLoads(IntPtr wrapper, out int length);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr AGVState_GetLoadAt(IntPtr wrapper, int index);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr AGVState_GetActionStates(IntPtr wrapper, out int length);
 
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
@@ -88,6 +94,12 @@ namespace VDA5050Message
 
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr AGVState_GetErrorAt(IntPtr wrapper, int index);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr AGVState_GetInformations(IntPtr wrapper, out int length);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr AGVState_GetInformationAt(IntPtr wrapper, int index);
 
         [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr AGVState_GetSafetyState(IntPtr wrapper);
@@ -202,6 +214,21 @@ namespace VDA5050Message
                 Velocity.GetDataWrapper(velocityPtr);
             }
 
+            Loads ??= new List<Load>();
+            Loads.Clear();
+            AGVState_GetLoads(prt, out var loadCount);
+            for (var i = 0; i < loadCount; i++)
+            {
+                var loadPtr = AGVState_GetLoadAt(prt, i);
+                if (loadPtr == IntPtr.Zero)
+                {
+                    continue;
+                }
+                var load = new Load();
+                load.GetDataWrapper(loadPtr);
+                Loads.Add(load);
+            }
+
             ActionStates ??= new List<ActionState>();
             ActionStates.Clear();
             AGVState_GetActionStates(prt, out var actionStateCount);
@@ -237,6 +264,21 @@ namespace VDA5050Message
                 var error = new Error();
                 error.GetDataWrapper(errorPtr);
                 Errors.Add(error);
+            }
+
+            Information ??= new List<Info>();
+            Information.Clear();
+            AGVState_GetInformations(prt, out var infoCount);
+            for (var i = 0; i < infoCount; i++)
+            {
+                var infoPtr = AGVState_GetInformationAt(prt, i);
+                if (infoPtr == IntPtr.Zero)
+                {
+                    continue;
+                }
+                var info = new Info();
+                info.GetDataWrapper(infoPtr);
+                Information.Add(info);
             }
 
             var safetyStatePtr = AGVState_GetSafetyState(prt);

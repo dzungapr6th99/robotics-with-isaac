@@ -55,6 +55,8 @@ set(vda_wrapper_sources
   src/EdgeStateWrapper.cpp
   src/ActionStateWrapper.cpp
   src/ErrorWrapper.cpp
+  src/LoadWrapper.cpp
+  src/InfoWrapper.cpp
 )
 
 set(vda_mission_sources

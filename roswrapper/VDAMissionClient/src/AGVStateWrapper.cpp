@@ -147,6 +147,15 @@ extern "C"
         return wrapper->entity.loads.data();
     }
 
+    RCLCPP_EXPORT const Load *AGVState_GetLoadAt(AGVStateWrapper *wrapper, int index)
+    {
+        if (!wrapper || index < 0 || index >= static_cast<int>(wrapper->entity.loads.size()))
+        {
+            return nullptr;
+        }
+        return &wrapper->entity.loads[static_cast<size_t>(index)];
+    }
+
     RCLCPP_EXPORT bool AGVState_GetDriving(AGVStateWrapper *wrapper)
     {
         return wrapper->entity.driving;
@@ -220,6 +229,15 @@ extern "C"
             *length = static_cast<int>(wrapper->entity.informations.size());
         }
         return wrapper->entity.informations.data();
+    }
+
+    RCLCPP_EXPORT const Info *AGVState_GetInformationAt(AGVStateWrapper *wrapper, int index)
+    {
+        if (!wrapper || index < 0 || index >= static_cast<int>(wrapper->entity.informations.size()))
+        {
+            return nullptr;
+        }
+        return &wrapper->entity.informations[static_cast<size_t>(index)];
     }
 
     RCLCPP_EXPORT const SafetyState *AGVState_GetSafetyState(AGVStateWrapper *wrapper)
