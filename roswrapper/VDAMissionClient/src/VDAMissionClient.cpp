@@ -13,6 +13,7 @@ VDAMissionClient::VDAMissionClient(std::string ns) : rclcpp::Node("vda_miss_clie
 {
     tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+    _initPosePub = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("initialpose", 10);
 
     odometry_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(odom_topic_, rclcpp::SensorDataQoS(),
                                                                        std::bind(&VDAMissionClient::OdometryCallback, this,
@@ -28,6 +29,7 @@ VDAMissionClient::VDAMissionClient(std::string ns) : rclcpp::Node("vda_miss_clie
     handler_list = {
         {"lift", "VDAMissionClient/VDAActionAMRHandler"},
         {"dock", "VDAMissionClient/VDAActionAMRHandler"},
+        {"initPosition", "VDAMissionClient/VDAActionHandlerInitialPose"},
     };
 
     for (const auto &item : handler_list)
@@ -372,6 +374,20 @@ void VDAMissionClient::ExecuteAction(const vda5050_msgs::msg::Action &vda5050_ac
         UpdateActionState(vda5050_action, VDAActionState::FAILED, "Action handler not found");
     }
     // Continue process action here
+}
+
+void VDAMissionClient::InitialPose(double x, double y, double theta)
+{
+    geometry_msgs::msg::PoseWithCovarianceStamped msg;
+    msg.header.stamp = now();
+    msg.header.frame_id = "map";
+    msg.pose.pose.position.x = x;
+    msg.pose.pose.position.y = y;
+    msg.pose.pose.position.z = 0.25;
+    tf2::Quaternion q;
+    q.setRPY(0, 0, theta);
+    msg.pose.pose.orientation = tf2::toMsg(q);
+    _initPosePub->publish(msg);
 }
 
 bool VDAMissionClient::CanAcceptOrder()

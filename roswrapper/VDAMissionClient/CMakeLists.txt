@@ -65,6 +65,7 @@ set(vda_mission_sources
 
 set(vda_action_handler_sources
   src/VDAActionAMRHandler.cpp
+  src/VDAActionHandlerInitialPose.cpp
 )
 
 # Build shared libraries
@@ -89,6 +90,7 @@ ament_target_dependencies(
   pluginlib
 )
 target_link_libraries(VDAMissionClient VDAWrapper)
+target_link_libraries(vda_action_amr_handler VDAMissionClient)
 
 pluginlib_export_plugin_description_file(${PROJECT_NAME} vda_action_handlers.xml)
 

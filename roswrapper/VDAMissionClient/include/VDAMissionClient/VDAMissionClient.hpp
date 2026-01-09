@@ -2,6 +2,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
 #include <lifecycle_msgs/srv/get_state.hpp>
 #include <nav2_msgs/action/navigate_through_poses.hpp>
 #include <nav_msgs/msg/odometry.hpp>
@@ -98,6 +99,7 @@ public:
     // different servers based on the action type
     void ExecuteAction(const vda5050_msgs::msg::Action &vda5050_action);
     void ProcessInstantActions(const vda5050_msgs::msg::InstantActions::ConstSharedPtr msg);
+    void InitialPose(double x, double y, double theta);
 
     // The callback function when the node receives a vda5050_msgs/Order message and processes it
     void ProcessOrder(const vda5050_msgs::msg::Order::ConstSharedPtr msg);
@@ -120,6 +122,7 @@ private:
     std::string robot_type_;
     std::string status_check_service_;
     std::string config_file_;
+    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr _initPosePub;
     // Subscribers
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odometry_sub_;
 
