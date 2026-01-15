@@ -11,6 +11,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonLib", "..\sharelibrar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigData", "ConfigData\ConfigData.csproj", "{CC3B6768-A768-437F-BB5C-0DA8FECA62A4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Entities", "Entities", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Business", "Business", "{CBF28229-BCB6-4000-BA16-5C0D19C59DF1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{0745CB53-CC31-4D9D-933F-F0DB6D3C2768}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +42,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{12AAB596-EA72-44C7-901C-BF7FE2DB4D69} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{04F55497-886E-4F80-8E02-71DB1B8AE5E3} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{CC3B6768-A768-437F-BB5C-0DA8FECA62A4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A043DA8C-868E-4BFB-ABD9-6871F1D82EBD}
