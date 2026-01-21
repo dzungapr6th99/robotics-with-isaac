@@ -148,4 +148,10 @@ namespace ApiObject.Cuopt
         [JsonPropertyName("vehicle_fixed_cost")]
         public int? VehicleFixedCost { get; set; }
     }
+
+    public class CuOptVRPSubmitResponse
+    {
+        [JsonPropertyName("reqId")]
+        public string? ReqId { get; set; }
+    }
 }
