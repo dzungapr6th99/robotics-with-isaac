@@ -7,6 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="FluentValidation" Version="12.1.1" />
 		<PackageReference Include="MQTTnet" Version="5.0.1.1416" />
 		<PackageReference Include="MQTTnet.AspNetCore" Version="5.0.1.1416" />
 		<PackageReference Include="MQTTnet.AspNetCore.Routing" Version="0.4.43" />
@@ -20,7 +21,14 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\sharelibrary\CommonLib\CommonLib.csproj" />
+		<ProjectReference Include="..\ApiObject\ApiObject.csproj" />
+		<ProjectReference Include="..\BusinessLayer\BusinessLayer.csproj" />
 		<ProjectReference Include="..\ConfigData\ConfigData.csproj" />
+		<ProjectReference Include="..\CuOptClientService\CuOptClientService.csproj" />
+		<ProjectReference Include="..\DataAccess\DataAccess.csproj" />
+		<ProjectReference Include="..\DbObject\DbObject.csproj" />
+		<ProjectReference Include="..\RobotControl\RobotControl.csproj" />
+		<ProjectReference Include="..\ShareMemoryData\ShareMemoryData.csproj" />
 		<ProjectReference Include="..\VDA5050Message\VDA5050Message.csproj" />
 	</ItemGroup>
 

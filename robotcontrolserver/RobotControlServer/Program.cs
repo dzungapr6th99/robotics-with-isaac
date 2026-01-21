@@ -63,7 +63,6 @@ namespace RobotServer
             builder.Host.UseNLog();
             ConfigData.InitConfig(builder.Configuration);
 
-
             builder.Services.AddHttpClient().ConfigureHttpClientDefaults(http =>
             {
                 http.ConfigurePrimaryHttpMessageHandler(() =>

@@ -480,7 +480,7 @@ namespace DataAccess.Extensions
                 insertFieldProps.Add(prop.Name);
             }
 
-            String sqlText = $@"INSERT INTO {tableName.ToUpper()}({string.Join(", ", insertFieldNames)}) VALUES ({string.Join(", ", insertFieldProps.Select(field => ":" + field))})";
+            String sqlText = $@"INSERT INTO {tableName.ToUpper()}({string.Join(", ", insertFieldNames)}) VALUES ({string.Join(", ", insertFieldProps.Select(field => ":" + field))}) RETURNING ID";
             CommonLog.logDb.Info($@"SQL Text: {sqlText}");
             return sqlText;
         }

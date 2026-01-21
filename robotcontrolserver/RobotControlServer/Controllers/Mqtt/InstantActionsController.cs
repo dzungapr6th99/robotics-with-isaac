@@ -5,7 +5,7 @@ using CommonLib;
 using MQTTnet.AspNetCore.Routing;
 using VDA5050Message;
 using MQTTnet.AspNetCore.Routing.Attributes;
-namespace RobotControlServer.Controller.Mqtt
+namespace RobotControlServer.Controllers.Mqtt
 {
     [MqttController]
     [MqttRoute("")]

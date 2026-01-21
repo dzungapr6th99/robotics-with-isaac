@@ -1,4 +1,4 @@
-﻿using BusinessLayer.Interfaces;
+using BusinessLayer.Interfaces;
 using DataAccess.Interface;
 using DataAccess.Interfaces;
 using DbObject;
@@ -12,8 +12,8 @@ namespace BusinessLayer
         private readonly IBaseDA<Route> _routeBaseDA;
         private readonly IBaseDA<Point> _pointBaseDA;
         public override string TableName => DatabaseEnum.TableName.Map;
-        public override string TableId => base.TableId; 
-        public MapBL(IBaseDA<Map> baseDA,IBaseDA<Route> routeBaseDA, IBaseDA<Point> pointBaseDA ,IDbManagement dbManagement) : base(baseDA, dbManagement)
+        public override string TableId => base.TableId;
+        public MapBL(IBaseDA<Map> baseDA, IBaseDA<Route> routeBaseDA, IBaseDA<Point> pointBaseDA, IDbManagement dbManagement) : base(baseDA, dbManagement)
         {
             _routeBaseDA = routeBaseDA;
             _pointBaseDA = pointBaseDA;
