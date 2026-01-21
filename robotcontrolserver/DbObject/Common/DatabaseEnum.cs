@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DbObject.Common
 {
-    internal static class DatabaseEnum
+    public static class DatabaseEnum
     {
         public static class TableName
         {

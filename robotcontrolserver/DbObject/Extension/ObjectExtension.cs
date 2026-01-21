@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using DeepCopy;
-namespace DbObjects.Extension
+namespace DbObject.Extension
 {
     public static class ObjectExtension
     {

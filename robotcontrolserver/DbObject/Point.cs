@@ -2,10 +2,8 @@
 namespace DbObject
 {
     [DbTable(Name = "POINT")]
-    public class Point
+    public class Point : BaseDbObject
     {
-        [DbField(IsKey = true)]
-        public int? Id { get; set; }
         [DbField(IsKey = true)]
         public int? MapId { get; set; }
 

@@ -5,9 +5,8 @@ using DbObject.Common;
 namespace DbObject
 {
     [DbTable(Name = DatabaseEnum.TableName.Robot)]
-    public class Robot
+    public class Robot : BaseDbObject
     {
-        public int? Id { get; set; }
         public string? InterfaceName { get; set; }
         public string? Manufacturer { get; set; }
         public string? SerialNumber { get; set; }

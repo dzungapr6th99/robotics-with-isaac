@@ -31,6 +31,19 @@ namespace CommonLib
             public static int CANCELLED = 5;
             public static int ABORTED = 6;
         }
-
+        public static class ReturnCode
+        {
+            public static int SUCCESS = 1;
+            public static int SERVICE_GET_ERROR = -999;
+        }
+        public static class ReturnMessage
+        {
+            public static string SUCCESS = "Success";
+            public static string SERVICE_GET_ERROR = "Service get error";
+            public static string ERROR_WHEN_INSERT_DATA = "Error when insert data";
+            public static string ERROR_WHEN_SEARCH_DATA = "Error when search data";
+            public static string ERROR_WHEN_UPDATE_DATA = "Error when update data";
+            public static string ERROR_WHEN_DELETE_DATA = "Error when delete data";
+        }
     }
 }

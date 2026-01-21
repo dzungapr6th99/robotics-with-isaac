@@ -7,10 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ApiObject\ApiObject.csproj" />
+    <PackageReference Include="Dapper" Version="2.1.66" />
+    <PackageReference Include="DeepCopy" Version="1.0.3" />
+    <PackageReference Include="System.Data.SQLite" Version="2.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\sharelibrary\CommonLib\CommonLib.csproj" />
     <ProjectReference Include="..\DbObject\DbObject.csproj" />
-    <ProjectReference Include="..\ShareMemoryData\ShareMemoryData.csproj" />
-    <ProjectReference Include="..\VDA5050Message\VDA5050Message.csproj" />
   </ItemGroup>
 
 </Project>

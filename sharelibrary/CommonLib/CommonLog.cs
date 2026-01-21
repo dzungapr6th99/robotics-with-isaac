@@ -6,5 +6,6 @@ namespace CommonLib
     {
         public static Logger log = LogManager.GetCurrentClassLogger();
         public static Logger logApi = LogManager.GetLogger("logApi");
+        public static Logger logDb = LogManager.GetLogger("logDb");
     }
 }

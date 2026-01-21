@@ -9,11 +9,9 @@ using System.Threading.Tasks;
 namespace DbObject
 {
     [DbTable(Name = DatabaseEnum.TableName.RobotType)]
-    public class RobotType
+    public class RobotType : BaseDbObject
     {
-        [DbField(IsKey = true)]
-        public int Id { get; set; }
-        public string ModelName { get; set; }
+        public string? ModelName { get; set; }
         public int MaxCapacity { get; set; } = 1;
 
     }

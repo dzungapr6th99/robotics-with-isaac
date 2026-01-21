@@ -9,10 +9,8 @@ using System.Threading.Tasks;
 namespace DbObject
 {
     [DbTable(Name = DatabaseEnum.TableName.PointType)]
-    public class PointType
+    public class PointType : BaseDbObject
     {
-        [DbField(IsKey = true)]
-        public int? Id { get; set; }
         public string? Name { get; set; }
         public string? Description { get;set; }
     }

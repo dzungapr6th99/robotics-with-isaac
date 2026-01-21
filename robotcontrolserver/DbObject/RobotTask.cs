@@ -9,13 +9,19 @@ using System.Threading.Tasks;
 namespace DbObject
 {
     [DbTable(Name = DatabaseEnum.TableName.RobotTask)]
-    public class RobotTask
+    public class RobotTask : BaseDbObject
     {
-        [DbField(IsKey = true)]
-        public int? Id { get; set; }
-        public string? Name { get; set; }    
-        public string? Description { get; set; } 
+        public string? Name { get; set; }
+        public string? Description { get; set; }
         public int? RobotTypeId { get; set; }
+
+        public int? DeliveryFromPointId { get; set; }
+        public int? DeliveryToPointId { get; set; }
+        public int? Capacity { get; set; }
+        [DbField(IgnoreInsert = true, IgnoreUpdate = true)]
+        public Point? DeliveryFrom { get; set; }
+        [DbField(IgnoreInsert = true, IgnoreUpdate = true)]
+        public Point? DeliveryTo { get; set; }
         [DbField(IgnoreInsert = true, IgnoreUpdate = true)]
         public RobotType? RobotType { get; set; }
 

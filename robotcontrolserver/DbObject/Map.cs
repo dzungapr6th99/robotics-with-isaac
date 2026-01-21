@@ -5,11 +5,8 @@ using DbObject.Common;
 namespace DbObject
 {
     [DbTable(Name = DatabaseEnum.TableName.Map)]
-    public class Map
+    public class Map : BaseDbObject
     {
-        [DbField(IsKey = true)]
-        public int? Id { get; set; }
-
         public string? Name { get; set; }
 
         public string? MinioUrl { get; set; }

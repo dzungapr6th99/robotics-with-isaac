@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DbObject.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ namespace DbObject
 {
     public class BaseDbObject
     {
-
+        [DbField(IsKey = true)]
+        public virtual int? Id { get; set; }
     }
 }

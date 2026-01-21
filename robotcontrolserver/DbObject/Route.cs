@@ -9,9 +9,10 @@ using System.Threading.Tasks;
 namespace DbObject
 {
     [DbTable(Name = DatabaseEnum.TableName.Route)]
-    public class Route
+    public class Route : BaseDbObject
     {
-        public int? Id { get; set; }
+        [DbField(IsKey = true)]
+        public int? MapId { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
         public int? FromPointId { get; set; }
