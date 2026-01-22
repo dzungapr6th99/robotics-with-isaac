@@ -23,27 +23,62 @@ namespace CommonLib
 
         public static class NavigationResult
         {
-            public static int UNKOWN = 0;
-            public static int ACCEPTED = 1;
-            public static int EXECUTING= 2;
-            public static int CANCELING = 3;
-            public static int SUCCEEDED = 4;
-            public static int CANCELLED = 5;
-            public static int ABORTED = 6;
+            public const int UNKOWN = 0;
+            public const int ACCEPTED = 1;
+            public const int EXECUTING= 2;
+            public const int CANCELING = 3;
+            public const int SUCCEEDED = 4;
+            public const int CANCELLED = 5;
+            public const int ABORTED = 6;
         }
         public static class ReturnCode
         {
-            public static int SUCCESS = 1;
-            public static int SERVICE_GET_ERROR = -999;
+            public const int SUCCESS = 1;
+            public const int SERVICE_GET_ERROR = -999;
+            public static class Point
+            {
+                public const int MAP_NOT_EXIST_IN_DATABASE = -100_000_001;
+                public const int MUST_NOT_MOVE_POINT_TO_OTHER_MAP = -100_000_002;
+            }
+            public static class Route
+            {
+                public const int MAP_NOT_EXIST_IN_DATABASE = -100_001_003;
+                public const int FROM_POINT_NOT_EXIST_IN_DATABASE = -100_001_004;
+                public const int TO_POINT_NOT_EXIST_IN_DATABASE = -100_001_005;
+                public const int POINT_NOT_IN_MAP = -100_001_006;
+            }
+
+            public static class Robot
+            {
+                public const int SERIAL_NUMBER_DUPLICATED = -100_002_001;
+            }
         }
         public static class ReturnMessage
         {
-            public static string SUCCESS = "Success";
-            public static string SERVICE_GET_ERROR = "Service get error";
-            public static string ERROR_WHEN_INSERT_DATA = "Error when insert data";
-            public static string ERROR_WHEN_SEARCH_DATA = "Error when search data";
-            public static string ERROR_WHEN_UPDATE_DATA = "Error when update data";
-            public static string ERROR_WHEN_DELETE_DATA = "Error when delete data";
+            public const string SUCCESS = "Success";
+            public const string SERVICE_GET_ERROR = "Service get error";
+            public const string ERROR_WHEN_INSERT_DATA = "Error when insert data";
+            public const string ERROR_WHEN_SEARCH_DATA = "Error when search data";
+            public const string ERROR_WHEN_UPDATE_DATA = "Error when update data";
+            public const string ERROR_WHEN_DELETE_DATA = "Error when delete data";
+            public static class Point
+            {
+                public const string MAP_NOT_EXIST_IN_DATABASE = "Map is not exist in database";
+                public const string MUST_NOT_MOVE_POINT_TO_OTHER_MAP = "Must not move point to other map";
+            }
+
+            public static class Route
+            {
+                public const string MAP_NOT_EXIST_IN_DATABASE = "Map is not exist in database";
+                public const string FROM_POINT_NOT_EXIST_IN_DATABASE = "FromPoint is not exist in database";
+                public const string TO_POINT_NOT_EXIST_IN_DATABASE = "ToPoint is not exist in database";
+                public const string POINT_NOT_IN_MAP = "FromPoint and ToPoint must belong to the selected map";
+            }
+
+            public static class Robot
+            {
+                public const string SERIAL_NUMBER_DUPLICATED = "Serial number already exists in database";
+            }
         }
     }
 }

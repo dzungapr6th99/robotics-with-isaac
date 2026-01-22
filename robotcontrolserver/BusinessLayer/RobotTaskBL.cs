@@ -9,14 +9,14 @@ namespace BusinessLayer
 {
     public class RobotTaskBL : BaseBL<RobotTask>, IRobotTaskBL
     {
-        private readonly IBaseDA<Point> _pointDa;
-        private readonly IBaseDA<RobotType> _robotTypeDa;
+        private readonly IBaseDA<Point> _pointDA;
+        private readonly IBaseDA<RobotType> _robotTypeDA;
 
         public override string TableName => DatabaseEnum.TableName.RobotTask;
         public RobotTaskBL(IBaseDA<RobotTask> baseDA, IBaseDA<Point> pointDa, IBaseDA<RobotType> robotTypeDa, IDbManagement dbManagement) : base(baseDA, dbManagement)
         {
-            _pointDa = pointDa;
-            _robotTypeDa = robotTypeDa;
+            _pointDA = pointDa;
+            _robotTypeDA = robotTypeDa;
         }
 
         public override int GetChildData(RobotTask data, IDbConnection? connection)
@@ -25,15 +25,15 @@ namespace BusinessLayer
             {
                 if (data.DeliveryFromPointId.HasValue)
                 {
-                    data.DeliveryFrom = _pointDa.Query(new Point { Id = data.DeliveryFromPointId }, connection)?.FirstOrDefault();
+                    data.DeliveryFrom = _pointDA.Query(new Point { Id = data.DeliveryFromPointId }, connection)?.FirstOrDefault();
                 }
                 if (data.DeliveryToPointId.HasValue)
                 {
-                    data.DeliveryTo = _pointDa.Query(new Point { Id = data.DeliveryToPointId }, connection)?.FirstOrDefault();
+                    data.DeliveryTo = _pointDA.Query(new Point { Id = data.DeliveryToPointId }, connection)?.FirstOrDefault();
                 }
                 if (data.RobotTypeId.HasValue)
                 {
-                    data.RobotType = _robotTypeDa.Query(new RobotType { Id = data.RobotTypeId }, connection)?.FirstOrDefault();
+                    data.RobotType = _robotTypeDA.Query(new RobotType { Id = data.RobotTypeId }, connection)?.FirstOrDefault();
                 }
             }
             return base.GetChildData(data, connection);

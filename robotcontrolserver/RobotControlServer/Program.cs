@@ -58,7 +58,6 @@ namespace RobotServer
                 serverOptions.Limits.MaxRequestBodySize = 2147483648; // 2GB
             });
 
-            builder.Services.AddControllers();
 
             builder.Host.UseNLog();
             ConfigData.InitConfig(builder.Configuration);

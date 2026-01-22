@@ -29,32 +29,35 @@ namespace BusinessLayer
             int result = ConstData.ReturnCode.SUCCESS;
             try
             {
-                bool checkBeforeInsert = BeforeInsert(entity, ref returnCode, ref returnMessage);
-                if (checkBeforeInsert)
+                using (var connection = _dbManagement.GetConnection())
                 {
-                    using (var transaction = _dbManagement.GetConnection().BeginTransaction())
+                    bool checkBeforeInsert = BeforeInsert(entity, connection, ref returnCode, ref returnMessage);
+                    if (checkBeforeInsert)
                     {
-                        int insert = _baseDA.Insert(entity, transaction);
-                        int insertChilData = InsertChildData(entity, transaction);
+                        using (var transaction = connection.BeginTransaction())
+                        {
+                            int insert = _baseDA.Insert(entity, transaction);
+                            int insertChilData = InsertChildData(entity, transaction);
 
-                        if (insert > 0 && insertChilData > 0)
-                        {
-                            transaction.Commit();
-                            returnCode.Add(ConstData.ReturnCode.SUCCESS);
-                            returnMessage.Add(ConstData.ReturnMessage.SUCCESS);
+                            if (insert > 0 && insertChilData > 0)
+                            {
+                                transaction.Commit();
+                                returnCode.Add(ConstData.ReturnCode.SUCCESS);
+                                returnMessage.Add(ConstData.ReturnMessage.SUCCESS);
+                            }
+                            else
+                            {
+                                returnCode.Add(ConstData.ReturnCode.SERVICE_GET_ERROR);
+                                returnMessage.Add(ConstData.ReturnMessage.ERROR_WHEN_INSERT_DATA);
+                                transaction.Rollback();
+                            }
+                            result = insert;
                         }
-                        else
-                        {
-                            returnCode.Add(ConstData.ReturnCode.SERVICE_GET_ERROR);
-                            returnMessage.Add(ConstData.ReturnMessage.ERROR_WHEN_INSERT_DATA);
-                            transaction.Rollback();
-                        }
-                        result = insert;
                     }
-                }
-                else
-                {
-                    result = -1;
+                    else
+                    {
+                        result = -1;
+                    }
                 }
                 return result;
             }
@@ -74,35 +77,39 @@ namespace BusinessLayer
             returnMessage = new List<string>();
             try
             {
-                bool checkBeforeInsert = false;
-                foreach (T entity in entities)
+                using (var connection = _dbManagement.GetConnection())
                 {
-                    checkBeforeInsert = BeforeInsert(entity, ref returnCode, ref returnMessage);
-                    if (!checkBeforeInsert)
+
+                    bool checkBeforeInsert = false;
+                    foreach (T entity in entities)
                     {
-                        return -1;
+                        checkBeforeInsert = BeforeInsert(entity, connection, ref returnCode, ref returnMessage);
+                        if (!checkBeforeInsert)
+                        {
+                            return -1;
+                        }
                     }
-                }
-                using (var transaction = _dbManagement.GetConnection().BeginTransaction())
-                {
-                    int inserted = 0;
-                    for (int i = 0; i < entities.Count; i++)
+                    using (var transaction = connection.BeginTransaction())
                     {
-                        inserted += _baseDA.Insert(entities[i], transaction);
-                    }
-                    if (inserted > entities.Count)
-                    {
-                        returnCode.Add(ConstData.ReturnCode.SERVICE_GET_ERROR);
-                        returnMessage.Add(ConstData.ReturnMessage.ERROR_WHEN_INSERT_DATA);
-                        transaction.Rollback();
-                        return -1;
-                    }
-                    else
-                    {
-                        returnCode.Add(ConstData.ReturnCode.SUCCESS);
-                        returnMessage.Add(ConstData.ReturnMessage.SUCCESS);
-                        transaction.Commit();
-                        return inserted;
+                        int inserted = 0;
+                        for (int i = 0; i < entities.Count; i++)
+                        {
+                            inserted += _baseDA.Insert(entities[i], transaction);
+                        }
+                        if (inserted > entities.Count)
+                        {
+                            returnCode.Add(ConstData.ReturnCode.SERVICE_GET_ERROR);
+                            returnMessage.Add(ConstData.ReturnMessage.ERROR_WHEN_INSERT_DATA);
+                            transaction.Rollback();
+                            return -1;
+                        }
+                        else
+                        {
+                            returnCode.Add(ConstData.ReturnCode.SUCCESS);
+                            returnMessage.Add(ConstData.ReturnMessage.SUCCESS);
+                            transaction.Commit();
+                            return inserted;
+                        }
                     }
                 }
             }
@@ -123,7 +130,7 @@ namespace BusinessLayer
             {
 
                 return -1;
-            }    
+            }
             try
             {
                 T? oldData = null;
@@ -137,7 +144,7 @@ namespace BusinessLayer
                         returnMessage.Add(message);
                         return ConstData.ReturnCode.SERVICE_GET_ERROR;
                     }
-                    bool checkBeforeUpdate = BeforeUpdate(entity, oldData, ref returnCode, ref returnMessage);
+                    bool checkBeforeUpdate = BeforeUpdate(entity, oldData, connection, ref returnCode, ref returnMessage);
                     if (checkBeforeUpdate)
                     {
                         using (var transaction = connection.BeginTransaction())
@@ -200,7 +207,7 @@ namespace BusinessLayer
                                 return ConstData.ReturnCode.SERVICE_GET_ERROR;
                             }
 
-                            if (!BeforeUpdate(entity, oldData, ref returnCode, ref returnMessage))
+                            if (!BeforeUpdate(entity, oldData, connection, ref returnCode, ref returnMessage))
                             {
                                 return -1;
                             }
@@ -236,32 +243,36 @@ namespace BusinessLayer
             returnMessage = new List<string>();
             try
             {
-                bool checkBeforeUpdate = BeforeDelete(entity, ref returnCode, ref returnMessage);
-                if (checkBeforeUpdate)
+                using (var connection = _dbManagement.GetConnection())
                 {
-                    using (var transaction = _dbManagement.GetConnection().BeginTransaction())
+
+                    bool checkBeforeUpdate = BeforeDelete(entity, connection, ref returnCode, ref returnMessage);
+                    if (checkBeforeUpdate)
                     {
-                        int deleted = _baseDA.Delete(entity, transaction);
-                        int deleteChildData = DeleteChildData(entity, transaction);
-                        if (deleted > 0 && deleteChildData > 0)
+                        using (var transaction = connection.BeginTransaction())
                         {
-                            transaction.Commit();
-                            returnCode.Add(ConstData.ReturnCode.SUCCESS);
-                            returnMessage.Add(ConstData.ReturnMessage.SUCCESS);
+                            int deleted = _baseDA.Delete(entity, transaction);
+                            int deleteChildData = DeleteChildData(entity, transaction);
+                            if (deleted > 0 && deleteChildData > 0)
+                            {
+                                transaction.Commit();
+                                returnCode.Add(ConstData.ReturnCode.SUCCESS);
+                                returnMessage.Add(ConstData.ReturnMessage.SUCCESS);
+                            }
+                            else
+                            {
+                                returnCode.Add(ConstData.ReturnCode.SERVICE_GET_ERROR);
+                                returnMessage.Add(ConstData.ReturnMessage.ERROR_WHEN_INSERT_DATA);
+                                transaction.Rollback();
+                                return deleted;
+                            }
                         }
-                        else
-                        {
-                            returnCode.Add(ConstData.ReturnCode.SERVICE_GET_ERROR);
-                            returnMessage.Add(ConstData.ReturnMessage.ERROR_WHEN_INSERT_DATA);
-                            transaction.Rollback();
-                            return deleted;
-                        }
+                        return ConstData.ReturnCode.SUCCESS;
                     }
-                    return ConstData.ReturnCode.SUCCESS;
-                }
-                else
-                {
-                    return -1;
+                    else
+                    {
+                        return -1;
+                    }
                 }
             }
             catch (Exception ex)
@@ -278,38 +289,40 @@ namespace BusinessLayer
             returnMessage = new List<string>();
             try
             {
-                bool checkBeforeDelete = false;
-                foreach (T entity in entities)
+                using (var connection = _dbManagement.GetConnection())
                 {
-                    checkBeforeDelete = BeforeDelete(entity, ref returnCode, ref returnMessage);
-                    if (!checkBeforeDelete)
+                    bool checkBeforeDelete = false;
+                    foreach (T entity in entities)
                     {
-                        return -1;
+                        checkBeforeDelete = BeforeDelete(entity, connection, ref returnCode, ref returnMessage);
+                        if (!checkBeforeDelete)
+                        {
+                            return -1;
+                        }
+                    }
+                    using (var transaction = connection.BeginTransaction())
+                    {
+                        int deleted = 0;
+                        for (int i = 0; i < entities.Count; i++)
+                        {
+                            deleted += _baseDA.Delete(entities[i], transaction);
+                        }
+                        if (deleted > entities.Count)
+                        {
+                            returnCode.Add(ConstData.ReturnCode.SERVICE_GET_ERROR);
+                            returnMessage.Add(ConstData.ReturnMessage.ERROR_WHEN_INSERT_DATA);
+                            transaction.Rollback();
+                            return -1;
+                        }
+                        else
+                        {
+                            returnCode.Add(ConstData.ReturnCode.SUCCESS);
+                            returnMessage.Add(ConstData.ReturnMessage.SUCCESS);
+                            transaction.Commit();
+                            return deleted;
+                        }
                     }
                 }
-                using (var transaction = _dbManagement.GetConnection().BeginTransaction())
-                {
-                    int deleted = 0;
-                    for (int i = 0; i < entities.Count; i++)
-                    {
-                        deleted += _baseDA.Delete(entities[i], transaction);
-                    }
-                    if (deleted > entities.Count)
-                    {
-                        returnCode.Add(ConstData.ReturnCode.SERVICE_GET_ERROR);
-                        returnMessage.Add(ConstData.ReturnMessage.ERROR_WHEN_INSERT_DATA);
-                        transaction.Rollback();
-                        return -1;
-                    }
-                    else
-                    {
-                        returnCode.Add(ConstData.ReturnCode.SUCCESS);
-                        returnMessage.Add(ConstData.ReturnMessage.SUCCESS);
-                        transaction.Commit();
-                        return deleted;
-                    }
-                }
-
             }
             catch (Exception ex)
             {
@@ -368,7 +381,7 @@ namespace BusinessLayer
             }
         }
 
-       
+
         public List<T>? GetByIds(List<int> Ids, out int returnCode, out string returnMessage)
         {
             returnCode = ConstData.ReturnCode.SUCCESS;
@@ -426,17 +439,17 @@ namespace BusinessLayer
         }
 
 
-        public virtual bool BeforeInsert(T entity, ref List<int> returnCode, ref List<string> returnMessage)
+        public virtual bool BeforeInsert(T entity, IDbConnection connection, ref List<int> returnCode, ref List<string> returnMessage)
         {
             return true;
         }
 
-        public virtual bool BeforeUpdate(T entity, T oldData, ref List<int> returnCode, ref List<string> returnMessage)
+        public virtual bool BeforeUpdate(T entity, T oldData, IDbConnection connection, ref List<int> returnCode, ref List<string> returnMessage)
         {
             return true;
         }
 
-        public virtual bool BeforeDelete(T entity, ref List<int> returnCode, ref List<string> returnMessage)
+        public virtual bool BeforeDelete(T entity, IDbConnection connection, ref List<int> returnCode, ref List<string> returnMessage)
         {
             return true;
         }

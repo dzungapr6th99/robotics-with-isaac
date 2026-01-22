@@ -4,15 +4,15 @@ using CommonLib;
 using DbObject;
 using Microsoft.AspNetCore.Mvc;
 using RobotControlServer.Validators;
-using System.Reflection.Metadata;
 
 namespace RobotControlServer.Controllers.RestApi.CRUD
-{
+{ 
+    [Route("api1/base/")]
     public class CRUDBaseController<T> :ControllerBase where T : BaseDbObject
     {
         protected readonly IBaseBL<T> _baseBL;
-        public readonly BaseCRUDValidator<T> _validator;
-        public CRUDBaseController(IBaseBL<T> baseBL, BaseCRUDValidator<T> validator = null)
+        public readonly BaseCRUDValidator<T>? _validator;
+        public CRUDBaseController(IBaseBL<T> baseBL, BaseCRUDValidator<T>? validator = null)
         {
             _baseBL = baseBL;
             _validator = validator;
