@@ -9,6 +9,8 @@ using DbObject;
 using MQTTnet.AspNetCore;
 using MQTTnet.AspNetCore.Routing;
 using MQTTnet.Server;
+using RobotControl;
+using RobotControl.Interfaces;
 using RobotControlServer.Controllers.Mqtt;
 using RobotControlServer.Controllers.RestApi.CRUD;
 using RobotControlServer.Validators;
@@ -37,7 +39,9 @@ namespace RobotServer.Startups
                     .AddMqttConnectionHandler()
                     .AddConnections()
                     .AddMqttControllers([connectionAssembly]);
+            services.AddSingleton<IAgvControl, AgvControl>();
             services.AddHostedService<MqttServiceWorker>();
+
         }
 
         public static void DataAccessInjection(IServiceCollection services)
@@ -70,6 +74,7 @@ namespace RobotServer.Startups
             services.AddSingleton<IRobotBL, RobotBL>();
             services.AddSingleton<IRobotTypeBL, RobotTypeBL>();
             services.AddSingleton<IRobotTaskBL, RobotTaskBL>();
+
         }
 
         public static void ValidationInjection(IServiceCollection services)

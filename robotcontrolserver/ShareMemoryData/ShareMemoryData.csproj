@@ -10,5 +10,8 @@
     <ProjectReference Include="..\DbObject\DbObject.csproj" />
     <ProjectReference Include="..\VDA5050Message\VDA5050Message.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Using Include="System" />
+  </ItemGroup>
 
 </Project>
