@@ -55,6 +55,7 @@ namespace RobotServer.Startups
             services.AddSingleton<IBaseDA<Robot>, RobotDA>();
             services.AddSingleton<IBaseDA<RobotType>, RobotTypeDA>();
             services.AddSingleton<IBaseDA<RobotTask>, RobotTaskDA>();
+            services.AddSingleton<IBaseDA<RobotTaskTemplate>, RobotTaskTemplateDA>();
         }
 
         public static void BusinessLayerInjection(IServiceCollection services)
@@ -66,6 +67,7 @@ namespace RobotServer.Startups
             services.AddSingleton<IBaseBL<Robot>, RobotBL>();
             services.AddSingleton<IBaseBL<RobotType>, RobotTypeBL>();
             services.AddSingleton<IBaseBL<RobotTask>, RobotTaskBL>();
+            services.AddSingleton<IBaseBL<RobotTaskTemplate>, RobotTaskTemplateBL>();
 
             services.AddSingleton<IMapBL, MapBL>();
             services.AddSingleton<IPointBL, PointBL>();
@@ -74,6 +76,7 @@ namespace RobotServer.Startups
             services.AddSingleton<IRobotBL, RobotBL>();
             services.AddSingleton<IRobotTypeBL, RobotTypeBL>();
             services.AddSingleton<IRobotTaskBL, RobotTaskBL>();
+            services.AddSingleton<IRobotTaskTemplateBL, RobotTaskTemplateBL>();
 
         }
 
@@ -82,6 +85,7 @@ namespace RobotServer.Startups
             services.AddSingleton<BaseCRUDValidator<Point>, PointValidator>();
             services.AddSingleton<BaseCRUDValidator<DbRoute>, RouteValidator>();
             services.AddSingleton<BaseCRUDValidator<Robot>, RobotValidator>();
+            services.AddSingleton<BaseCRUDValidator<RobotTaskTemplate>, RobotTaskTemplateValidator>();
         }
 
         public static void ControllerInjection(IServiceCollection services)
@@ -97,6 +101,7 @@ namespace RobotServer.Startups
             services.AddScoped<RouteController>();
             services.AddScoped<RobotController>();
             services.AddScoped<RobotTaskController>();
+            services.AddScoped<RobotTaskTemplateController>();
             services.AddScoped<PointTypeController>();
             services.AddScoped<RobotTypeController>();
         }

@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using DbObject;
+using System.Linq;
 using VDA5050Message;
 
 namespace ShareMemoryData
@@ -43,6 +44,8 @@ namespace ShareMemoryData
                 robotStatus.CoordinateY = state.AgvPosition?.Y ?? 0;
                 robotStatus.VelocityX = state.Velocity?.Vx ?? 0;
                 robotStatus.VelocityY = state.Velocity?.Vy ?? 0;
+                robotStatus.LastNodeId = state.LastNodeId ?? string.Empty;
+                robotStatus.LastNodeReleased = state.NodeStates?.Any(n => n.Released && n.NodeId == robotStatus.LastNodeId) == true;
             }
         }
     }

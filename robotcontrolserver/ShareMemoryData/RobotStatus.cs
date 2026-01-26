@@ -15,5 +15,7 @@ namespace ShareMemoryData
         public int MaxCapacity { get; set; }
         public int CurrentCapacity { get; set; }
         public int RemainCapacity { get; set; }
+        public string LastNodeId { get; set; } = string.Empty;
+        public bool LastNodeReleased { get; set; }
     }
 }

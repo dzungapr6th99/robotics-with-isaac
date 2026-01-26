@@ -11,5 +11,7 @@ namespace DbObject
     {
         [DbField(IsKey = true)]
         public virtual int? Id { get; set; }
+
+        public DateTime? CreateAt { get; set; }
     }
 }

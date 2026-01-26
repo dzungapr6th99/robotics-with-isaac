@@ -5,9 +5,8 @@ namespace CuOptClientService.Common;
 
 public static class DTO2CuOpt
 {
-    public static List<List<int>> CreateCostmapMatrix(List<Point> poinst, List<Route> routes)
+    public static List<List<int>> CreateCostmapMatrix(List<Point> points, List<Route> routes)
     {
-        var points = poinst ?? new List<Point>();
         var matrixSize = points.Count;
         var result = new int[matrixSize, matrixSize];
 

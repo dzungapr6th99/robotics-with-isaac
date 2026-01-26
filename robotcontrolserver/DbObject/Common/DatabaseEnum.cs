@@ -17,6 +17,7 @@ namespace DbObject.Common
             public const string Robot = "ROBOT";
             public const string Action = "ACTION";
             public const string RobotTask = "ROBOTTASK";
+            public const string RobotTaskTemplate = "ROBOTTASKTEMPLATE";
             public const string RobotType = "ROBOTTYPE";
         }
 
