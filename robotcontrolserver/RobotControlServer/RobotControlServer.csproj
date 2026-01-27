@@ -32,4 +32,10 @@
 		<ProjectReference Include="..\VDA5050Message\VDA5050Message.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Update="Database\ROBOTSERVER.db">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
 </Project>

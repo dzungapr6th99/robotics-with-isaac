@@ -28,7 +28,7 @@ namespace RobotServer.Startups
         {
             services.AddCors();
             services.AddMqttConnectionHandler();
-            DataAccessInjection(services);
+            InfrastructureInjection(services);
             BusinessLayerInjection(services);
             ValidationInjection(services);
             //ControllerInjection(services);
@@ -44,7 +44,7 @@ namespace RobotServer.Startups
 
         }
 
-        public static void DataAccessInjection(IServiceCollection services)
+        public static void InfrastructureInjection(IServiceCollection services)
         {
             services.AddSingleton<IDbManagement>(_ => new DbManagement(ConfigData.ConnectionString));
             
@@ -56,6 +56,7 @@ namespace RobotServer.Startups
             services.AddSingleton<IBaseDA<RobotType>, RobotTypeDA>();
             services.AddSingleton<IBaseDA<RobotTask>, RobotTaskDA>();
             services.AddSingleton<IBaseDA<RobotTaskTemplate>, RobotTaskTemplateDA>();
+            services.AddSingleton<IAgvControl, AgvControl>();
         }
 
         public static void BusinessLayerInjection(IServiceCollection services)

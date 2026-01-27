@@ -13,8 +13,10 @@ namespace DbObject
     {
         public string? Name { get; set; }
         public string? Description { get; set; }
+        [DbField(IsKey = true)]
         public int? RobotTypeId { get; set; }
-
+        [DbField(IsKey = true)]
+        public int? RobotTaskTemplateId{get;set;}
         public int? DeliveryFromPointId { get; set; }
         public int? DeliveryToPointId { get; set; }
         public int? Capacity { get; set; }

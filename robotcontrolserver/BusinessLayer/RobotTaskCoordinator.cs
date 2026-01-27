@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Concurrent;
 using ApiObject.Cuopt;
+using BusinessLayer.Interfaces;
 using CuOptClientService;
 using CuOptClientService.Common;
 using DbObject;
+using RobotControl.Interfaces;
 using ShareMemoryData;
 using VDA5050Message;
 
@@ -12,15 +15,22 @@ namespace BusinessLayer;
 /// Central task pipeline: queue tasks, wait until robots are ready (at last released node),
 /// invoke CuOpt, and return VDA5050 orders.
 /// </summary>
-public class RobotTaskCoordinator
+public class RobotTaskCoordinator : IRobotCoordinator
 {
     private readonly CuOptClient _cuOptClient;
     private readonly ConcurrentQueue<RobotTask> _taskQueue = new();
+    private readonly ConcurrentDictionary<string, ConcurrentQueue<Order>> _pendingOrders = new();
     private readonly object _lock = new();
-    private Thread? _threadControlRobot;
-    public RobotTaskCoordinator(CuOptClient cuOptClient)
+    public event Action<string, Order>? OnOrderReadyToSend;
+
+    private readonly IAgvControl _agvControl;
+
+    public RobotTaskCoordinator(CuOptClient cuOptClient, IAgvControl agvControl)
     {
         _cuOptClient = cuOptClient;
+        _agvControl = agvControl;
+        LocalMemory.RobotReady += HandleRobotReady;
+        LocalMemory.RobotIdle += HandleRobotIdle;
     }
 
     public void Enqueue(RobotTask task)
@@ -51,6 +61,23 @@ public class RobotTaskCoordinator
 
         // Solve with CuOpt and map output to orders
         var orders = await _cuOptClient.SolveAsync(robotList, tasks, map.Points, map.Routes, ct).ConfigureAwait(false);
+
+        // store pending orders for later dispatch
+        foreach (var kvp in orders)
+        {
+            var queue = _pendingOrders.GetOrAdd(kvp.Key, _ => new ConcurrentQueue<Order>());
+            foreach (var order in kvp.Value)
+            {
+                queue.Enqueue(order);
+            }
+        }
+
+        // immediately dispatch to any ready robots
+        foreach (var robot in robotList)
+        {
+            HandleRobotReady(robot);
+        }
+
         return orders;
     }
 
@@ -65,5 +92,46 @@ public class RobotTaskCoordinator
             }
         }
         return result;
+    }
+
+    private void HandleRobotReady(RobotStatus robotStatus)
+    {
+        if (robotStatus == null || string.IsNullOrEmpty(robotStatus.SerialNumber))
+            return;
+
+        if (_pendingOrders.TryGetValue(robotStatus.SerialNumber, out var queue))
+        {
+            if (queue.TryDequeue(out var nextOrder))
+            {
+                _ = SendOrderAsync(robotStatus, nextOrder);
+            }
+        }
+    }
+
+    private void HandleRobotIdle()
+    {
+        if (!LocalMemory.HaveRobotIdle(out var mapRobots) || mapRobots.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var kv in mapRobots)
+        {
+            _ = TrySolveAsync(kv.Value, kv.Key);
+        }
+    }
+
+    private async Task SendOrderAsync(RobotStatus robotStatus, Order order)
+    {
+        try
+        {
+            await _agvControl.SendOrder(order, robotStatus);
+            OnOrderReadyToSend?.Invoke(robotStatus.SerialNumber, order);
+        }
+        catch
+        {
+            var queue = _pendingOrders.GetOrAdd(robotStatus.SerialNumber, _ => new ConcurrentQueue<Order>());
+            queue.Enqueue(order);
+        }
     }
 }

@@ -1,12 +1,16 @@
+using System;
 using System.Collections.Concurrent;
-using DbObject;
 using System.Linq;
+using DbObject;
 using VDA5050Message;
 
 namespace ShareMemoryData
 {
     public static class LocalMemory
     {
+        public static event Action<RobotStatus>? RobotReady;
+        public static event Action? RobotIdle;
+
         private static readonly ConcurrentDictionary<Map, List<RobotStatus>> _mapWithRobotStatus = new();
         private static readonly ConcurrentDictionary<string, RobotStatus> _dictRobotStatus = new();
 
@@ -40,13 +44,50 @@ namespace ShareMemoryData
             }
             if (_dictRobotStatus.TryGetValue(state.SerialNumber, out var robotStatus))
             {
+                var wasReleased = robotStatus.LastNodeReleased;
+                var wasBusy = !string.IsNullOrEmpty(robotStatus.DoingTask);
                 robotStatus.CoordinateX = state.AgvPosition?.X ?? 0;
                 robotStatus.CoordinateY = state.AgvPosition?.Y ?? 0;
                 robotStatus.VelocityX = state.Velocity?.Vx ?? 0;
                 robotStatus.VelocityY = state.Velocity?.Vy ?? 0;
                 robotStatus.LastNodeId = state.LastNodeId ?? string.Empty;
                 robotStatus.LastNodeReleased = state.NodeStates?.Any(n => n.Released && n.NodeId == robotStatus.LastNodeId) == true;
+                robotStatus.DoingTask = state.Driving ? (state.OrderId ?? string.Empty) : string.Empty;
+
+                if (!wasReleased && robotStatus.LastNodeReleased)
+                {
+                    RobotReady?.Invoke(robotStatus);
+                }
+
+                var isIdle = string.IsNullOrEmpty(robotStatus.DoingTask);
+                if (wasBusy && isIdle)
+                {
+                    RobotIdle?.Invoke();
+                }
             }
+        }
+
+        public static bool HaveRobotIdle(out Dictionary<Map, List<RobotStatus>> _dictMapRobotStatus)
+        {
+            bool haveRobotIdle = false;
+            _dictMapRobotStatus = new Dictionary<Map, List<RobotStatus>>();
+            foreach (var keyValuePair in _mapWithRobotStatus)
+            {
+                var listRobotStatus = new List<RobotStatus>();
+                foreach (RobotStatus robotStatus in keyValuePair.Value)
+                {
+                    if (string.IsNullOrEmpty(robotStatus.DoingTask))
+                    {
+                        listRobotStatus.Add(robotStatus);
+                    }
+                }
+                if (listRobotStatus.Count() > 0)
+                {
+                    _dictMapRobotStatus.Add(keyValuePair.Key, listRobotStatus);
+                    haveRobotIdle = true;
+                }
+            }
+            return haveRobotIdle;
         }
     }
 }

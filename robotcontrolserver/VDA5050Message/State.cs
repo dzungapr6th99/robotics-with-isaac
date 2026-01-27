@@ -16,10 +16,10 @@ namespace VDA5050Message
         public string SerialNumber { get; set; }
         public List<Map>? Maps { get; set; }
         
-        public string OrderId { get; set; }
+        public string? OrderId { get; set; }
         public int OrderUpdateId { get; set; }
         public string? ZoneSetId { get; set; }
-        public string LastNodeId { get; set; }
+        public string? LastNodeId { get; set; }
         public int LastNodeSequenceId { get; set; }
         public bool Driving { get; set; }
         public bool? Paused { get; set; }
