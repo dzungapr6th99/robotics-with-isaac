@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DbMap = DbObject.Map;
+using DbObject;
 
 namespace BusinessLayer.Interfaces
 {
-    public interface IMapBL
+    public interface IMapBL : IBaseBL<DbMap>
     {
         DbMap? GetLatest(out int returnCode, out string returnMessage);
         bool ValidateMap(int mapId, out int returnCode, out string returnMessage, out List<string> details);

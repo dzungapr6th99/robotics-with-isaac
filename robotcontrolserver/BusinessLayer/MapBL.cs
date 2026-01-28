@@ -1,3 +1,4 @@
+using ApiObject;
 using BusinessLayer.Interfaces;
 using CommonLib;
 using DataAccess.Interface;
@@ -235,6 +236,25 @@ namespace BusinessLayer
                 returnCode = ConstData.ReturnCode.SERVICE_GET_ERROR;
                 returnMessage = ConstData.ReturnMessage.SERVICE_GET_ERROR;
                 return false;
+            }
+        }
+
+        public void ImportMatrix(DbMap map, ImportMatrix matrix)
+        {
+            List<Point> points = new List<Point>();
+            using (var connection = _dbManagement.GetConnection())
+            {
+                foreach (var node in matrix.Nodes)
+                {
+                    points.Add(new Point()
+                    {
+                        Name = $"Node_{node.Id}",
+                        MapId = map.Id,
+                        X = node.X,
+                        Y = node.Y,
+                        CreateAt = DateTime.Now,
+                    });
+                }
             }
         }
     }

@@ -47,9 +47,10 @@ namespace RobotServer.Startups
         public static void InfrastructureInjection(IServiceCollection services)
         {
             services.AddSingleton<IDbManagement>(_ => new DbManagement(ConfigData.ConnectionString));
-            
+            PointDA pointDA = new PointDA();
+            services.AddSingleton<IBaseDA<Point>>(pointDA);
+            services.AddSingleton<IPointDA>(pointDA);
             services.AddSingleton<IBaseDA<DbMap>, MapDA>();
-            services.AddSingleton<IBaseDA<Point>, PointDA>();
             services.AddSingleton<IBaseDA<PointType>, PointTypeDA>();
             services.AddSingleton<IBaseDA<DbRoute>, RouteDA>();
             services.AddSingleton<IBaseDA<Robot>, RobotDA>();

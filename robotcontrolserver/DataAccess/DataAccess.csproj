@@ -1,20 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.1.66" />
-    <PackageReference Include="DeepCopy" Version="1.0.3" />
-    <PackageReference Include="System.Data.SQLite" Version="2.0.2" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Dapper" Version="2.1.66" />
+		<PackageReference Include="DeepCopy" Version="1.0.3" />
+		<PackageReference Include="System.Data.SQLite" Version="1.0.119" />
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\sharelibrary\CommonLib\CommonLib.csproj" />
-    <ProjectReference Include="..\DbObject\DbObject.csproj" />
-  </ItemGroup>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\sharelibrary\CommonLib\CommonLib.csproj" />
+		<ProjectReference Include="..\DbObject\DbObject.csproj" />
+	</ItemGroup>
 
 </Project>

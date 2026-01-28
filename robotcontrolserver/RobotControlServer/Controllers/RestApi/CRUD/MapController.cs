@@ -3,27 +3,33 @@ using DbObject;
 using RobotControlServer.Validators;
 using Microsoft.AspNetCore.Mvc;
 using ShareMemoryData;
+using ApiObject.CRUD;
+using ApiObject;
+using CommonLib;
+using System.Text.Json;
+using System.Xml.Linq;
 
 namespace RobotControlServer.Controllers.RestApi.CRUD
 {
     [Route("api1/map/")]
     public class MapController : CRUDBaseController<Map>
     {
-        public MapController(IBaseBL<Map> baseBL, BaseCRUDValidator<Map>? validator = null) : base(baseBL, validator)
+        private readonly IMapBL _mapBL;
+        public MapController(IMapBL mapBL, BaseCRUDValidator<Map>? validator = null) : base(mapBL, validator)
         {
-
+            _mapBL = mapBL; 
         }
 
+        public override Task<IActionResult> Create([FromForm] CreateRequest<Map> request)
+        {
+            return base.Create(request);
+        }
         [HttpGet("latest")]
         public async Task<IActionResult> GetLatest()
         {
-            if (_baseBL is not IMapBL mapBL)
-            {
-                return BadRequest("Map business layer is not available");
-            }
             int code = 0;
             string message = string.Empty;
-            Map? latest = await Task.Run(() => mapBL.GetLatest(out code, out message));
+            Map? latest = await Task.Run(() => _mapBL.GetLatest(out code, out message));
             if (latest != null)
             {
                 return Ok(latest);
@@ -39,14 +45,10 @@ namespace RobotControlServer.Controllers.RestApi.CRUD
         [HttpPost("validate")]
         public async Task<IActionResult> ValidateMap([FromBody] ValidateRequest request)
         {
-            if (_baseBL is not IMapBL mapBL)
-            {
-                return BadRequest("Map business layer is not available");
-            }
             int code = 0;
             string message = string.Empty;
             List<string> details = new();
-            bool valid = await Task.Run(() => mapBL.ValidateMap(request.MapId, out code, out message, out details));
+            bool valid = await Task.Run(() => _mapBL.ValidateMap(request.MapId, out code, out message, out details));
             return Ok(new { Code = code, Message = message, Valid = valid, Details = details });
         }
 
@@ -59,14 +61,10 @@ namespace RobotControlServer.Controllers.RestApi.CRUD
         [HttpPost("assign")]
         public async Task<IActionResult> Assign([FromBody] AssignRequest request)
         {
-            if (_baseBL is not IMapBL mapBL)
-            {
-                return BadRequest("Map business layer is not available");
-            }
             int code = 0;
             string message = string.Empty;
             List<string> details = new();
-            bool result = await Task.Run(() => mapBL.AssignMapToRobots(request.MapId, request.RobotIds, out code, out message, out details));
+            bool result = await Task.Run(() => _mapBL.AssignMapToRobots(request.MapId, request.RobotIds, out code, out message, out details));
             if (result)
             {
                 return Ok(new { Code = code, Message = message, Details = details });
@@ -83,14 +81,10 @@ namespace RobotControlServer.Controllers.RestApi.CRUD
         [HttpPost("download")]
         public async Task<IActionResult> Download([FromBody] DownloadRequest request)
         {
-            if (_baseBL is not IMapBL mapBL)
-            {
-                return BadRequest("Map business layer is not available");
-            }
             int code = 0;
             string message = string.Empty;
             List<string> details = new();
-            bool result = await Task.Run(() => mapBL.DownloadMap(request.MapId, request.RobotIds, out code, out message, out details));
+            bool result = await Task.Run(() => _mapBL.DownloadMap(request.MapId, request.RobotIds, out code, out message, out details));
             if (result)
             {
                 return Ok(new { Code = code, Message = message, Details = details });
@@ -117,6 +111,36 @@ namespace RobotControlServer.Controllers.RestApi.CRUD
             return BadRequest("Token expired or not found");
         }
 
-        
+        [HttpPost("import-matrix")]
+        public async Task<IActionResult> ImportMatrixFromFile([FromForm] ImportMatrixRequest request)
+        {
+            Map map = _baseBL.GetById(request.MapId, out int returnCode, out string returnMessage);
+            if (map == null)
+            {
+                return BadRequest(new { MapId = request.MapId });
+            }
+            using (var stream = request.JsonFile.OpenReadStream())
+            {
+                // Deserialize the stream directly into the C# object
+                var result = await JsonSerializer.DeserializeAsync<ImportMatrix>(stream, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                if (result == null)
+                {
+                    return BadRequest(new ImportMatrixResponse()
+                    {
+                        ReturnCode = -999,
+                        ReturnMessage = "File json is invalid"
+                    });
+                }
+                else
+                {
+                    return Ok(new ImportMatrixResponse()
+                    {
+                        ReturnCode = 1,
+                        ReturnMessage = "success"
+                    });
+                }    
+            }
+
+        }
     }
 }

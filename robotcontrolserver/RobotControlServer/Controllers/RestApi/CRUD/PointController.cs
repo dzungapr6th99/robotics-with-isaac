@@ -8,9 +8,10 @@ namespace RobotControlServer.Controllers.RestApi.CRUD
      [Route("api1/point/")]
     public class PointController : CRUDBaseController<Point>
     {
-        public PointController(IBaseBL<Point> baseBL, BaseCRUDValidator<Point>? validator = null) : base(baseBL, validator)
+        private readonly IPointBL _pointBL;
+        public PointController(IPointBL pointBL, BaseCRUDValidator<Point>? validator = null) : base(pointBL, validator)
         {
-
+            _pointBL = pointBL;
         }
 
         public class AlignRequest
@@ -21,14 +22,10 @@ namespace RobotControlServer.Controllers.RestApi.CRUD
         [HttpPost("align")]
         public async Task<IActionResult> Align([FromBody] AlignRequest request)
         {
-            if (_baseBL is not IPointBL pointBL)
-            {
-                return BadRequest("Point business layer is not available");
-            }
             int code = 0;
             string message = string.Empty;
             List<string> details = new();
-            bool result = await Task.Run(() => pointBL.AlignPoints(request.Points, out code, out message, out details));
+            bool result = await Task.Run(() => _pointBL.AlignPoints(request.Points, out code, out message, out details));
             if (result)
             {
                 return Ok(new { Code = code, Message = message, Details = details });
