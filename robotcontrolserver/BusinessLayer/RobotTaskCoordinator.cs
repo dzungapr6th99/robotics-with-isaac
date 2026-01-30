@@ -4,6 +4,7 @@ using ApiObject.Cuopt;
 using BusinessLayer.Interfaces;
 using CuOptClientService;
 using CuOptClientService.Common;
+using CuOptClientService.Interfaces;
 using DbObject;
 using RobotControl.Interfaces;
 using ShareMemoryData;
@@ -15,17 +16,16 @@ namespace BusinessLayer;
 /// Central task pipeline: queue tasks, wait until robots are ready (at last released node),
 /// invoke CuOpt, and return VDA5050 orders.
 /// </summary>
-public class RobotTaskCoordinator : IRobotCoordinator
+public class RobotTaskCoordinator : IRobotTaskCoordinator
 {
-    private readonly CuOptClient _cuOptClient;
+    private readonly ICuOptClient _cuOptClient;
     private readonly ConcurrentQueue<RobotTask> _taskQueue = new();
     private readonly ConcurrentDictionary<string, ConcurrentQueue<Order>> _pendingOrders = new();
     private readonly object _lock = new();
     public event Action<string, Order>? OnOrderReadyToSend;
-
     private readonly IAgvControl _agvControl;
 
-    public RobotTaskCoordinator(CuOptClient cuOptClient, IAgvControl agvControl)
+    public RobotTaskCoordinator(ICuOptClient cuOptClient, IAgvControl agvControl)
     {
         _cuOptClient = cuOptClient;
         _agvControl = agvControl;
@@ -134,4 +134,6 @@ public class RobotTaskCoordinator : IRobotCoordinator
             queue.Enqueue(order);
         }
     }
+
+
 }

@@ -12,6 +12,8 @@ namespace DbObject
     public class RobotTask : BaseDbObject
     {
         public string? Name { get; set; }
+        [DbField(IsKey = true)]
+        public int? MapId { get; set; } 
         public string? Description { get; set; }
         [DbField(IsKey = true)]
         public int? RobotTypeId { get; set; }

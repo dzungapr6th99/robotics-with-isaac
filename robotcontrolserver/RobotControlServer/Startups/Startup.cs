@@ -1,6 +1,8 @@
 using BusinessLayer;
 using BusinessLayer.Interfaces;
 using ConfigApp;
+using CuOptClientService;
+using CuOptClientService.Interfaces;
 using DataAccess;
 using DataAccess.Helper;
 using DataAccess.Interface;
@@ -58,6 +60,8 @@ namespace RobotServer.Startups
             services.AddSingleton<IBaseDA<RobotTask>, RobotTaskDA>();
             services.AddSingleton<IBaseDA<RobotTaskTemplate>, RobotTaskTemplateDA>();
             services.AddSingleton<IAgvControl, AgvControl>();
+            CuOptClient cuoptClient = new CuOptClient(ConfigData.CuOptUri);
+            services.AddSingleton<ICuOptClient>(cuoptClient);
         }
 
         public static void BusinessLayerInjection(IServiceCollection services)

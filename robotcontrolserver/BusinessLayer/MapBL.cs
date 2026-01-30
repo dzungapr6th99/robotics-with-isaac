@@ -5,9 +5,12 @@ using DataAccess.Interface;
 using DataAccess.Interfaces;
 using DbObject;
 using DbObject.Common;
+using NLog.Time;
 using RobotControl.Interfaces;
 using ShareMemoryData;
 using System.Data;
+using System.Net.WebSockets;
+using System.Xml.Linq;
 using VDA5050Message;
 using VDA5050Message.Base;
 using DbMap = DbObject.Map;
@@ -239,22 +242,71 @@ namespace BusinessLayer
             }
         }
 
-        public void ImportMatrix(DbMap map, ImportMatrix matrix)
+        public bool ImportMatrix(DbMap map, ImportMatrix matrix, out string returnMessage)
         {
-            List<Point> points = new List<Point>();
-            using (var connection = _dbManagement.GetConnection())
+            try
             {
-                foreach (var node in matrix.Nodes)
+                map.Points = new List<Point>();
+                returnMessage = "Success";
+                using (var connection = _dbManagement.GetConnection())
                 {
-                    points.Add(new Point()
+                    using var transaction = connection.BeginTransaction();
+                    foreach (var node in matrix.Nodes)
                     {
-                        Name = $"Node_{node.Id}",
-                        MapId = map.Id,
-                        X = node.X,
-                        Y = node.Y,
-                        CreateAt = DateTime.Now,
-                    });
+                        Point point = new Point()
+                        {
+                            Name = $"Node_{node.Id}",
+                            MapId = map.Id,
+                            X = node.X,
+                            Y = node.Y,
+                            CreateAt = DateTime.Now,
+
+                        };
+                        int nodeId = _pointBaseDA.Insert(point, transaction);
+                        if (nodeId == -1)
+                        {
+                            returnMessage = $"Error when insert Node {node.Id}";
+                            transaction.Rollback();
+                            return false;
+                        }
+                        point.Id = nodeId;
+                        map.Points.Add(point);
+                    }
+                    foreach (var edge in matrix.Edges)
+                    {
+                        int FromPointId = map.Points.Where(x => x.Name == $"Node_{edge.From}").FirstOrDefault()?.Id ?? -1;
+                        int ToPointId = map.Points.Where(x => x.Name == $"Node_{edge.To}").FirstOrDefault()?.Id ?? -1;
+                        if (FromPointId == -1 || ToPointId == -1)
+                        {
+                            returnMessage = $"Error because there no Node_{edge.From} or Node_{edge.To}";
+                            transaction.Rollback();
+                            return false;
+                        }
+                        Route route = new Route()
+                        {
+                            MapId = map.Id,
+                            FromPointId = FromPointId,
+                            ToPointId = ToPointId,
+                            Name = $"Edge_{FromPointId}_{ToPointId}",
+                            CreateAt = DateTime.Now
+                        };
+                        int edgeId = _routeBaseDA.Insert(route, transaction);
+                        if (edgeId == -1)
+                        {
+                            returnMessage = $"Error when insert Edge {route.Name}";
+                            transaction.Rollback();
+                            return false;
+                        }
+                    }
+                    transaction.Commit();
+                    return true;
                 }
+            }
+            catch (Exception ex)
+            {
+                CommonLog.log.Error(ex);
+                returnMessage = ex.Message;
+                return false;
             }
         }
     }

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using System.Xml.Serialization;
+using Microsoft.AspNetCore.Http;
 
 namespace CommonLib
 {
@@ -37,6 +39,17 @@ namespace CommonLib
             {
                 return (T)serializer.Deserialize(stream)!;
             }
+        }
+
+        public static async Task<string> ReadJsonStringAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                throw new ArgumentException("Empty file");
+
+            await using var stream = file.OpenReadStream();
+            using var reader = new StreamReader(stream);
+
+            return await reader.ReadToEndAsync();
         }
     }
 }

@@ -17,7 +17,7 @@ namespace RobotControlServer.Controllers.RestApi.CRUD
         private readonly IMapBL _mapBL;
         public MapController(IMapBL mapBL, BaseCRUDValidator<Map>? validator = null) : base(mapBL, validator)
         {
-            _mapBL = mapBL; 
+            _mapBL = mapBL;
         }
 
         public override Task<IActionResult> Create([FromForm] CreateRequest<Map> request)
@@ -111,19 +111,23 @@ namespace RobotControlServer.Controllers.RestApi.CRUD
             return BadRequest("Token expired or not found");
         }
 
+
+
         [HttpPost("import-matrix")]
         public async Task<IActionResult> ImportMatrixFromFile([FromForm] ImportMatrixRequest request)
         {
-            Map map = _baseBL.GetById(request.MapId, out int returnCode, out string returnMessage);
+            Map? map = _baseBL.GetById(request.MapId, out int returnCode, out string returnMessage);
             if (map == null)
             {
-                return BadRequest(new { MapId = request.MapId });
+                return BadRequest("Can not found map in mapId");
             }
             using (var stream = request.JsonFile.OpenReadStream())
             {
                 // Deserialize the stream directly into the C# object
-                var result = await JsonSerializer.DeserializeAsync<ImportMatrix>(stream, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-                if (result == null)
+                string jsonString = await CommonFunc.ReadJsonStringAsync(request.JsonFile);
+                var result = ImportMatrix.LoadFromJson(jsonString);
+                //var result = JsonSerializer.Deserialize<ImportMatrix>(jsonString);
+                if (result == null || result.Edges == null || result.Nodes == null || (result.Edges.Count == 0 && result.Nodes.Count == 0))
                 {
                     return BadRequest(new ImportMatrixResponse()
                     {
@@ -133,12 +137,24 @@ namespace RobotControlServer.Controllers.RestApi.CRUD
                 }
                 else
                 {
-                    return Ok(new ImportMatrixResponse()
+                    bool import = _mapBL.ImportMatrix(map, result, out returnMessage);
+                    if (import)
                     {
-                        ReturnCode = 1,
-                        ReturnMessage = "success"
-                    });
-                }    
+                        return Ok(new ImportMatrixResponse()
+                        {
+                            ReturnCode = 1,
+                            ReturnMessage = "success"
+                        });
+                    }
+                    else
+                    {
+                        return BadRequest(new ImportMatrixResponse()
+                        {
+                            ReturnCode = -999,
+                            ReturnMessage = returnMessage
+                        });
+                    }
+                }
             }
 
         }

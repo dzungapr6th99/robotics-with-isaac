@@ -3,13 +3,14 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using ApiObject.Cuopt;
 using CuOptClientService.Common;
+using CuOptClientService.Interfaces;
 using DbObject;
 using ShareMemoryData;
 using VDA5050Message;
 
 namespace CuOptClientService;
 
-public class CuOptClient
+public class CuOptClient : ICuOptClient
 {
     private readonly HttpClient _http;
     private readonly Uri _baseUri;
@@ -32,7 +33,7 @@ public class CuOptClient
     /// <summary>
     /// Solve routing for the given robots and tasks, returning VDA5050 orders keyed by vehicle id.
     /// </summary>
-    public async Task<Dictionary<string, List<Order>>> SolveAsync(IEnumerable<RobotStatus> robots, IEnumerable<RobotTask> tasks, IEnumerable<Point> points, IEnumerable<Route> routes,        CancellationToken ct = default)
+    public async Task<Dictionary<string, List<Order>>> SolveAsync(IEnumerable<RobotStatus> robots, IEnumerable<RobotTask> tasks, IEnumerable<Point> points, IEnumerable<Route> routes, CancellationToken ct = default)
     {
         var robotList = robots?.ToList() ?? new List<RobotStatus>();
         var taskList = tasks?.ToList() ?? new List<RobotTask>();

@@ -122,14 +122,14 @@ namespace DataAccess.Extensions
         public static int Insert(this IDbConnection connection, object entity, Type type, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var insertSqlText = type.BuildInsertSqlText();
-            return transaction.Connection.Execute(insertSqlText, entity, transaction, commandTimeout, CommandType.Text);
+            return transaction.Connection.ExecuteScalar<int>(insertSqlText, entity, transaction, commandTimeout, CommandType.Text);
         }
 
         public static int Insert<T>(this IDbConnection connection, T entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var type = GetEntityType(entity);
             var insertSqlText = type.BuildInsertSqlText();
-            return transaction.Connection.Execute(insertSqlText, entity, transaction, commandTimeout, CommandType.Text);
+            return transaction.Connection.ExecuteScalar<int>(insertSqlText, entity, transaction, commandTimeout, CommandType.Text);
         }
 
         public static async Task<int> InsertAsync<T>(this IDbConnection connection, T entity, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -315,25 +315,6 @@ namespace DataAccess.Extensions
             var tableName = type.GetDbTableName().ToUpper();
 
             string sqlText = $@"SELECT * FROM {tableName}";
-
-            //if (param != null)
-            //{
-            //    var condKeys = new List<string>();
-            //    if (param.IsDictionary())
-            //    {
-            //        condKeys.AddRange(((IDictionary<string, object>)param).Keys);
-            //    }
-            //    else
-            //    {
-            //        condKeys.AddRange(param.GetType().GetProperties().Select(x => x.Name));
-            //    }
-
-            //    if (condKeys.Count > 0)
-            //    {
-            //        sqlText += $@" WHERE {string.Join(" AND ", condKeys.Select(key => $" {key} = :{key} "))}";
-            //    }
-            //}
-
             if (param != null)
             {
                 var condKeys = new List<string>();
@@ -480,7 +461,7 @@ namespace DataAccess.Extensions
                 insertFieldProps.Add(prop.Name);
             }
 
-            String sqlText = $@"INSERT INTO {tableName.ToUpper()}({string.Join(", ", insertFieldNames)}) VALUES ({string.Join(", ", insertFieldProps.Select(field => ":" + field))}) RETURNING ID";
+            String sqlText = $@"INSERT INTO {tableName.ToUpper()}({string.Join(", ", insertFieldNames)}) VALUES ({string.Join(", ", insertFieldProps.Select(field => ":" + field))}); SELECT last_insert_rowid();";
             CommonLog.logDb.Info($@"SQL Text: {sqlText}");
             return sqlText;
         }

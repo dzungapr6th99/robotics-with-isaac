@@ -25,6 +25,8 @@ namespace ConfigApp
         public static int RingBufferSize = 1024;
         public static string Version = "1.0";
         public static string ConnectionString { get; set; } = "Data Source=robotcontrol.db;Version=3;";
+
+        public static string CuOptUri { get; set; } = "http://localhost:8888";
         public static void InitConfig(IConfiguration configuration)
         {
             bool parse = int.TryParse(configuration["PortMqtt"]?.ToString(), out int value);
@@ -52,6 +54,8 @@ namespace ConfigApp
                 MqttClientConfig.Manufacturer = mqttConfig["Manufacturer"] ?? MqttClientConfig.Manufacturer;
                 MqttClientConfig.AgvControl = mqttConfig["AgvControl"] ?? MqttClientConfig.AgvControl;
             }
+
+            CuOptUri = configuration["CuOptUri"]?.ToString() ?? "http://localhost:8888";
         }
     }
 }

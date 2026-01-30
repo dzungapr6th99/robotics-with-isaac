@@ -3,7 +3,7 @@ using DbObject;
 
 namespace BusinessLayer.Interfaces
 {
-    public interface IRobotCoordinator
+    public interface IRobotTaskCoordinator
     {
         public void Enqueue(RobotTask task);
     }
