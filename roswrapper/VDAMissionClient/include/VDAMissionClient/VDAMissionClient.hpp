@@ -221,6 +221,7 @@ private:
 
     vda5050_msgs::msg::ErrorReference CreateErrorReference(
         const std::string &reference_key, const std::string &reference_value);
+    std::string build_action_name(const std::string &ns);
 };
 
 extern "C"

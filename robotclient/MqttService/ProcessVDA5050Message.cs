@@ -1,4 +1,5 @@
-﻿using RosNodeWrapper;
+﻿using CommonLib;
+using RosNodeWrapper;
 using RosNodeWrapper.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,7 @@ namespace MqttService
             {
                 return;
             }
+            CommonLog.log.Info("Start Execute order {0}", order.OrderId);
             _vdaRosClient.ExecuteOrder(order);
         }
 

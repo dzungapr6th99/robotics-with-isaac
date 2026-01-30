@@ -11,7 +11,7 @@ namespace ConfigApp
         {
             PathStoreConfig = configuration["PathStoreConfig"]?.ToString() ?? string.Empty;
             MqttClientId = configuration["MqttClientId"]?.ToString() ?? string.Empty;
-            RosNamespace = configuration["RosNamespace"]?.ToString() ?? string.Empty;
+            RosNamespace = configuration["RobotNameSpace"]?.ToString() ?? string.Empty;
         }
     }
 }

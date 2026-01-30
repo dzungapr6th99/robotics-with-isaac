@@ -56,7 +56,7 @@ namespace RosNodeWrapper
         {
             try
             {
-                CommonLog.log.Info("Initializing VDA ROS Client");
+                CommonLog.log.Info("Initializing VDA ROS Client with namespace {0}", ConfigData.RosNamespace);
                 _listRingBuffer = new List<RingBuffer<DataContainer>>();
 #if DEBUG
                 EnsureDebugRosEnvironment();

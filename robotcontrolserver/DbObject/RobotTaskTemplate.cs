@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DbObject
 {
-    [DbTable(Name = DatabaseEnum.TableName.RobotTask)]
+    [DbTable(Name = DatabaseEnum.TableName.RobotTaskTemplate)]
     public class RobotTaskTemplate : BaseDbObject
     {
         [DbField(IsKey = true)]

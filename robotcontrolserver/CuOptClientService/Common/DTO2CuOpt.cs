@@ -5,10 +5,10 @@ namespace CuOptClientService.Common;
 
 public static class DTO2CuOpt
 {
-    public static List<List<int>> CreateCostmapMatrix(List<Point> points, List<Route> routes)
+    public static List<List<double>> CreateCostmapMatrix(List<Point> points, List<Route> routes)
     {
         var matrixSize = points.Count;
-        var result = new int[matrixSize, matrixSize];
+        var result = new double[matrixSize, matrixSize];
 
         // Map point id to matrix index.
         var indexByPointId = new Dictionary<int, int>();
@@ -60,7 +60,7 @@ public static class DTO2CuOpt
         return ToList(result);
     }
 
-    private static int CalculateDistance(Point? a, Point? b)
+    private static double CalculateDistance(Point? a, Point? b)
     {
         if (a?.X == null || a?.Y == null || b?.X == null || b?.Y == null)
         {
@@ -70,17 +70,17 @@ public static class DTO2CuOpt
         var dx = a.X.Value - b.X.Value;
         var dy = a.Y.Value - b.Y.Value;
         // Use Euclidean distance and round up to int cost.
-        return (int)Math.Ceiling(Math.Sqrt((dx * dx) + (dy * dy)));
+        return Math.Sqrt((dx * dx) + (dy * dy));
     }
 
-    private static List<List<int>> ToList(int[,] matrix)
+    private static List<List<double>> ToList(double[,] matrix)
     {
         var rows = matrix.GetLength(0);
         var cols = matrix.GetLength(1);
-        var list = new List<List<int>>(rows);
+        var list = new List<List<double>>(rows);
         for (var i = 0; i < rows; i++)
         {
-            var row = new List<int>(cols);
+            var row = new List<double>(cols);
             for (var j = 0; j < cols; j++)
             {
                 row.Add(matrix[i, j]);

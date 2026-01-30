@@ -23,7 +23,7 @@ namespace ApiObject.Cuopt
     public class MatrixData
     {
         [JsonPropertyName("data")]
-        public Dictionary<string, List<List<int>>>? Data { get; set; }
+        public Dictionary<string, List<List<double>>>? Data { get; set; }
     }
 
     public class FleetData

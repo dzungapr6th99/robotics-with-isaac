@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ApiObject.Cuopt;
+using DbObject;
 using VDA5050Message;
 using VDA5050Message.Base;
 
@@ -12,11 +13,11 @@ public static class CuOpt2VDA
     /// <summary>
     /// Convert CuOpt VRP solver response to VDA5050 orders grouped by vehicle id.
     /// </summary>
-    public static Dictionary<string, List<Order>> Convert(CuoptVRPResponse response)
+    public static Dictionary<string, List<Order>> Convert(CuoptVRPResponse response, IList<Point> points)
     {
         var result = new Dictionary<string, List<Order>>();
-
-        var vehicleData = response?.Response?.SolverResponse?.VehicleData?.VehicleData;
+        
+        var vehicleData = response.Response?.SolverResponse?.VehicleData?.VehicleData ?? response?.Response?.SolverInfeasibleResponse?.VehicleData ?? null;
         if (vehicleData == null || vehicleData.Count == 0)
         {
             return result;
@@ -59,6 +60,26 @@ public static class CuOpt2VDA
                     SequenceId = i * 2,
                     NodeDescription = taskId,
                 };
+
+                // attach coordinates if available (matrix index == point index fallback to point id match)
+                Point? point = null;
+                if (route.Count > i)
+                {
+                    var idx = route[i];
+                    if (idx >= 0 && idx < points.Count)
+                        point = points[idx];
+                    else
+                        point = points.FirstOrDefault(p => p.Id == idx);
+                }
+                if (point != null)
+                {
+                    node.NodePosition = new NodePosition
+                    {
+                        X = point.X ?? 0,
+                        Y = point.Y ?? 0,
+                        MapId = point.MapId?.ToString() ?? "map"
+                    };
+                }
 
                 if (hasAction)
                 {

@@ -56,7 +56,7 @@ namespace RobotControlServer.Controllers.RestApi.CRUD
             response.Message.AddRange(returnMessage);
             response.Code.AddRange(returnCode);
             response.RecordId = task.Result;
-            if (task.Result >= 1)
+            if (task.Result >=0)
             {
                 return Ok(response);
             }

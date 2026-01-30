@@ -15,7 +15,7 @@ namespace ConfigApp
         public static class MqttClientConfig
         {
 
-            public static string Endpoint = "127.0.0.1:3006";
+            public static string Endpoint = "127.0.0.1:3011";
             public static string InterfaceName = "vda";
             public static string Manufacturer = "Dhhhh-team";
             public static string AgvControl = "AgvControl";

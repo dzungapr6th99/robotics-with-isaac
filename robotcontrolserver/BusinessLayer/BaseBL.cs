@@ -24,7 +24,7 @@ namespace BusinessLayer
 
         public virtual int Insert(T entity, out List<int> returnCode, out List<string> returnMessage)
         {
-            returnCode = new List<int>();
+             returnCode = new List<int>();
             returnMessage = new List<string>();
             int result = ConstData.ReturnCode.SUCCESS;
             try
@@ -39,7 +39,7 @@ namespace BusinessLayer
                             int insert = _baseDA.Insert(entity, transaction);
                             int insertChilData = InsertChildData(entity, transaction);
 
-                            if (insert > 0 && insertChilData > 0)
+                            if (insert >= 0 && insertChilData >= 0)
                             {
                                 transaction.Commit();
                                 returnCode.Add(ConstData.ReturnCode.SUCCESS);

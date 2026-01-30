@@ -43,7 +43,7 @@ namespace RobotServer.Startups
                     .AddMqttControllers([connectionAssembly]);
             services.AddSingleton<IAgvControl, AgvControl>();
             services.AddHostedService<MqttServiceWorker>();
-
+            services.AddHostedService<AgvControlWorker>();
         }
 
         public static void InfrastructureInjection(IServiceCollection services)
@@ -83,7 +83,7 @@ namespace RobotServer.Startups
             services.AddSingleton<IRobotTypeBL, RobotTypeBL>();
             services.AddSingleton<IRobotTaskBL, RobotTaskBL>();
             services.AddSingleton<IRobotTaskTemplateBL, RobotTaskTemplateBL>();
-
+            services.AddSingleton<IRobotTaskCoordinator, RobotTaskCoordinator>();
         }
 
         public static void ValidationInjection(IServiceCollection services)

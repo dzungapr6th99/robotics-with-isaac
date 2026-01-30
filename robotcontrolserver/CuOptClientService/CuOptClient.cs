@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using ApiObject.Cuopt;
 using CuOptClientService.Common;
 using CuOptClientService.Interfaces;
@@ -48,9 +49,10 @@ public class CuOptClient : ICuOptClient
         var request = BuildRequest(robotList, taskList, pointList, routeList);
 
         var reqId = await SubmitCuOptRequest(request, ct).ConfigureAwait(false);
+        await WaitUntilCompletedAsync(reqId, TimeSpan.FromSeconds(7)).ConfigureAwait(false);
         var response = await PollCuOptResponse(reqId, ct).ConfigureAwait(false);
 
-        return CuOpt2VDA.Convert(response);
+        return CuOpt2VDA.Convert(response, pointList);
     }
 
     private CuoptVRPRequest BuildRequest(List<RobotStatus> robots, List<RobotTask> tasks, List<Point> points, List<Route> routes)
@@ -58,7 +60,7 @@ public class CuOptClient : ICuOptClient
         var costMatrix = DTO2CuOpt.CreateCostmapMatrix(points, routes);
         if (costMatrix.Count == 0)
         {
-            costMatrix.Add(new List<int> { 0 });
+            costMatrix.Add(new List<double> { 0 });
         }
 
         var vehicleIds = robots
@@ -125,28 +127,23 @@ public class CuOptClient : ICuOptClient
         {
             CostMatrixData = new MatrixData
             {
-                Data = new Dictionary<string, List<List<int>>>
+                Data = new Dictionary<string, List<List<double>>>
                 {
                     { "1", costMatrix }
                 }
             },
-            TravelTimeMatrixData = new MatrixData
-            {
-                Data = new Dictionary<string, List<List<int>>>
-                {
-                    { "1", costMatrix }
-                }
-            },
+            TravelTimeMatrixData =new MatrixData() { Data = new Dictionary<string, List<List<double>>>() { { "1", CuOptBuild.BuildTimeMatrixFromDistance(costMatrix) } } },
             FleetData = new FleetData
             {
                 VehicleIds = vehicleIds,
                 VehicleLocations = vehicleLocations,
                 Capacities = capacities,
                 VehicleTimeWindows = vehicleTimeWindows,
-                VehicleMaxTimes = vehicleMaxTimes,
+                //VehicleMaxTimes = vehicleMaxTimes,
                 VehicleMaxCosts = vehicleMaxCosts,
                 DropReturnTrips = vehicleIds.Select(_ => true).ToList(),
-                SkipFirstTrips = vehicleIds.Select(_ => false).ToList()
+                SkipFirstTrips = vehicleIds.Select(_ => false).ToList(),
+                VehicleTypes = robots.Select(x=>x.RobotTypeId).ToList()
             },
             TaskData = new TaskData
             {
@@ -164,15 +161,80 @@ public class CuOptClient : ICuOptClient
             }
         };
     }
+    public async Task WaitUntilCompletedAsync(string reqId, TimeSpan maxWait, TimeSpan? pollInterval = null, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(reqId))
+            throw new ArgumentException("reqId is empty", nameof(reqId));
+
+        pollInterval ??= TimeSpan.FromSeconds(1);
+        var deadline = DateTime.UtcNow + maxWait;
+
+        string last = "";
+        while (DateTime.UtcNow < deadline)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            var status = await GetRequestStatusAsync(reqId, ct).ConfigureAwait(false);
+            last = status;
+
+            if (status == "completed") return;
+            if (status is "failed" or "error" or "cancelled" or "canceled")
+                throw new InvalidOperationException($"cuOpt request failed: status={status}, reqId={reqId}");
+
+            await Task.Delay(pollInterval.Value, ct).ConfigureAwait(false);
+        }
+
+    }
+    /// <summary>
+    /// Get request status text and normalize it (handles BOM/garbage so '�completed' becomes 'completed').
+    /// </summary>
+    public async Task<string> GetRequestStatusAsync(string reqId, CancellationToken ct = default)
+    {
+        var url = new Uri($"cuopt/request/{reqId}", UriKind.Relative);
+        using var msg = new HttpRequestMessage(HttpMethod.Get, url);
+        msg.Headers.Accept.ParseAdd("text/plain, application/json");
+
+        using var resp = await _http.SendAsync(msg, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
+        var bytes = await resp.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false);
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            var body = TryDecode(bytes);
+            throw new HttpRequestException($"cuOpt status failed HTTP={(int)resp.StatusCode} {resp.StatusCode}. Body={Trunc(body)}");
+        }
+
+        // Normalize weird encodings and junk chars (BOM etc.)
+        return NormalizeStatus(bytes);
+    }
+
+    private static string NormalizeStatus(byte[] raw)
+    {
+        if (raw.Length == 0) return "";
+
+        // Try decode variants; utf-8-sig equivalent: strip BOM manually after utf-8 decode too.
+        string text = TryDecode(raw);
+
+        // Remove quotes & whitespace, lower
+        text = text.Trim().Trim('"').Trim('\'').ToLowerInvariant();
+
+        // Keep letters only -> turns "�completed" or "completed\0\0" into "completed"
+        text = Regex.Replace(text, "[^a-z]+", "");
+        return text;
+    }
 
     private async Task<string> SubmitCuOptRequest(CuoptVRPRequest request, CancellationToken ct = default)
     {
         var url = new Uri("cuopt/request", UriKind.Relative);
         using var msg = new HttpRequestMessage(HttpMethod.Post, url);
+
+        msg.Headers.Accept.Clear();
         msg.Headers.Accept.ParseAdd("application/json");
 
         var json = JsonSerializer.Serialize(request, _json);
-        msg.Content = new StringContent(json, Encoding.UTF8, "application/json");
+       
+        var content = new StringContent(json, Encoding.UTF8);
+        content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+        msg.Content = content;
 
         using var resp = await _http.SendAsync(msg, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
         var body = await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
@@ -218,7 +280,7 @@ public class CuOptClient : ICuOptClient
                 // ignore and retry below
             }
 
-            if (parsed?.Response?.SolverResponse != null)
+            if (parsed?.Response?.SolverResponse != null || parsed?.Response?.SolverInfeasibleResponse != null)
                 return parsed;
 
             await Task.Delay(TimeSpan.FromSeconds(1), ct).ConfigureAwait(false);

@@ -6,6 +6,7 @@ namespace ShareMemoryData
         public string MajorVersion { get; set; } = string.Empty;
         public string Manufacturer { get; set; } = string.Empty;
         public string SerialNumber { get; set; } = string.Empty;
+        public int RobotTypeId { get; set; }
         public double VelocityX { get; set; }
         public double VelocityY { get; set; }
         public double CoordinateX { get; set; }

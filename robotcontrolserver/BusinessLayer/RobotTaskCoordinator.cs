@@ -47,7 +47,7 @@ public class RobotTaskCoordinator : IRobotTaskCoordinator
         Map map,
         CancellationToken ct = default)
     {
-        var robotList = robots?.Where(r => r.LastNodeReleased).ToList() ?? new List<RobotStatus>();
+        var robotList = robots?.Where(r => r.LastNodeReleased || string.IsNullOrEmpty(r.DoingTask)).ToList() ?? new List<RobotStatus>();
         if (robotList.Count == 0 || map.Points == null || map.Routes == null)
         {
             return new Dictionary<string, List<Order>>();

@@ -11,6 +11,7 @@ VDAMissionClient::VDAMissionClient(std::string ns) : rclcpp::Node("vda_miss_clie
                                                      action_handler_loader_("VDAMissionClient",
                                                                             "Vda5050ActionHandlerBase")
 {
+    RCLCPP_INFO(get_logger(), "Create VDAMissionClient node with namespace '%s'.", ns.c_str());
     tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
     _initPosePub = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("initialpose", 10);
@@ -18,7 +19,8 @@ VDAMissionClient::VDAMissionClient(std::string ns) : rclcpp::Node("vda_miss_clie
     odometry_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(odom_topic_, rclcpp::SensorDataQoS(),
                                                                        std::bind(&VDAMissionClient::OdometryCallback, this,
                                                                                  std::placeholders::_1));
-    client_ptr_ = rclcpp_action::create_client<NavThroughPoses>(this, "navigate_through_poses");
+    std::string action_name_with_ns = build_action_name(ns);
+    client_ptr_ = rclcpp_action::create_client<NavThroughPoses>(this, action_name_with_ns);
     agv_state_ = std::make_shared<vda5050_msgs::msg::AGVState>();
     factsheet_ = std::make_shared<vda5050_msgs::msg::Factsheet>();
     visualization_ = std::make_shared<vda5050_msgs::msg::Visualization>();
@@ -896,6 +898,40 @@ bool VDAMissionClient::SpinOnce()
 }
 
 #pragma endregion
+
+std::string VDAMissionClient::build_action_name(const std::string &ns)
+{
+    RCLCPP_INFO(get_logger(), "Build Navigate through poses with namespace");
+    constexpr const char *action = "navigate_through_poses";
+
+    // Case 1: root namespace
+    if (ns.empty() || ns == "/")
+    {
+        RCLCPP_INFO(this->get_logger(), "There no namespace");
+        return std::string("/") + action;
+    }
+
+    std::string clean_ns = ns;
+
+    // Remove trailing slash
+    if (!clean_ns.empty() && clean_ns.back() == '/')
+    {
+        clean_ns.pop_back();
+    }
+
+    // Ensure leading slash
+    if (clean_ns.front() != '/')
+    {
+        clean_ns = "/" + clean_ns;
+    }
+    std::string result = clean_ns + "/" + action;
+    RCLCPP_INFO(
+        this->get_logger(),
+        "Using action server name: %s",
+        result.c_str());
+    return result;
+}
+
 extern "C"
 {
     RCLCPP_EXPORT void InitEnviroment()
@@ -932,7 +968,7 @@ extern "C"
     {
 
         auto agv_state_msg = client->agv_state_;
-        AGVStateWrapper* agv_state_wrapper = new AGVStateWrapper();
+        AGVStateWrapper *agv_state_wrapper = new AGVStateWrapper();
         agv_state_wrapper->entity = *agv_state_msg;
         return agv_state_wrapper;
     }

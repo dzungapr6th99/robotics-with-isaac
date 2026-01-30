@@ -25,7 +25,12 @@ namespace ShareMemoryData
             {
                 RobotStatus robotStatus = new RobotStatus
                 {
-                    SerialNumber = robot.SerialNumber
+                    SerialNumber = robot.SerialNumber,
+                    MajorVersion = robot.MajorVersion ?? string.Empty,
+                    InterfaceName = robot.InterfaceName ?? string.Empty,
+                    Manufacturer = robot.Manufacturer ?? string.Empty,
+                    RobotTypeId = robot.RobotTypeId ?? 0,
+                    
                 };
                 Map? map = _mapWithRobotStatus.Keys.FirstOrDefault(x => x.Id == mapId);
                 if (map != null)
@@ -60,7 +65,7 @@ namespace ShareMemoryData
                 }
 
                 var isIdle = string.IsNullOrEmpty(robotStatus.DoingTask);
-                if (wasBusy && isIdle)
+                if (!wasBusy && isIdle)
                 {
                     RobotIdle?.Invoke();
                 }

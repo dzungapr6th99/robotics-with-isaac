@@ -139,7 +139,7 @@ namespace RobotControl
                     manufacturer = levelTopic[2];
                     serialNumber = levelTopic[3];
                     topic = levelTopic[4];
-                    processMessage(e.ApplicationMessage.Topic, message, version, interfaceName, manufacturer, serialNumber);
+                    processMessage(topic, message, version, interfaceName, manufacturer, serialNumber);
                 }
                 return Task.CompletedTask;
             };
@@ -169,6 +169,9 @@ namespace RobotControl
 
         public async Task<bool> SendOrder(Order order, RobotStatus robot)
         {
+            order.SerialNumber = robot.SerialNumber;
+            order.Manufacturer = robot.Manufacturer;
+
             string topic = BuildTopic(ConstData.Mqtt.Topic.ORDER, robot.InterfaceName, robot.MajorVersion, robot.Manufacturer, robot.SerialNumber);
             string jsonString = JsonSerializer.Serialize(order, _jsonSerializerOptions);
             var applicationMessage = new MqttApplicationMessageBuilder().WithTopic(topic).WithPayload(jsonString).Build();
@@ -176,7 +179,7 @@ namespace RobotControl
             var sent = await _mqttClient.PublishAsync(applicationMessage);
             if (!sent.IsSuccess)
             {
-                CommonLog.log.Warn("Send connection message fail");
+                CommonLog.log.Warn("Send order message fail");
                 return false;
             }
             return true;

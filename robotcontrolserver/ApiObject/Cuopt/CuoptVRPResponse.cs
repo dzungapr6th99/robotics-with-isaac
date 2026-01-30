@@ -1,4 +1,4 @@
-namespace ApiObject.Cuopt
+﻿namespace ApiObject.Cuopt
 {
     using System.Collections.Generic;
     using System.Text.Json;
@@ -26,6 +26,13 @@ namespace ApiObject.Cuopt
 
         [JsonPropertyName("solver_response")]
         public SolverResponse? SolverResponse { get; set; }
+
+        // NEW: infeasible response shape
+        [JsonPropertyName("solver_infeasible_response")]
+        public SolverInfeasibleResponse? SolverInfeasibleResponse { get; set; }
+
+        [JsonPropertyName("total_solve_time")]
+        public double? TotalSolveTime { get; set; }
     }
 
     public class PerfTimes
@@ -35,6 +42,31 @@ namespace ApiObject.Cuopt
         public Dictionary<string, JsonElement>? AdditionalData { get; set; }
     }
 
+
+
+    public class SolverInfeasibleResponse
+    {
+        [JsonPropertyName("status")]
+        public int? Status { get; set; }
+
+        [JsonPropertyName("num_vehicles")]
+        public int? NumVehicles { get; set; }
+
+        [JsonPropertyName("solution_cost")]
+        public double? SolutionCost { get; set; }
+
+        [JsonPropertyName("objective_values")]
+        public ObjectiveValues? ObjectiveValues { get; set; }   // direct, no wrapper
+
+        [JsonPropertyName("vehicle_data")]
+        public Dictionary<string, VehicleRouteData>? VehicleData { get; set; } // direct, no wrapper
+
+        [JsonPropertyName("initial_solutions")]
+        public List<JsonElement>? InitialSolutions { get; set; }
+
+        [JsonPropertyName("dropped_tasks")]
+        public DroppedTasks? DroppedTasks { get; set; }
+    }
     public class SolverResponse
     {
         [JsonPropertyName("dropped_tasks")]
@@ -98,7 +130,7 @@ namespace ApiObject.Cuopt
     public class VehicleRouteData
     {
         [JsonPropertyName("arrival_stamp")]
-        public List<int>? ArrivalStamp { get; set; }
+        public List<double>? ArrivalStamp { get; set; }   
 
         [JsonPropertyName("route")]
         public List<int>? Route { get; set; }
