@@ -12,128 +12,224 @@ public static class CuOpt2VDA
 {
     /// <summary>
     /// Convert CuOpt VRP solver response to VDA5050 orders grouped by vehicle id.
+    /// Orders are split by action boundaries; each order releases nodes/edges up to the first action in that order.
     /// </summary>
     public static Dictionary<string, List<Order>> Convert(CuoptVRPResponse response, IList<Point> points)
     {
         var result = new Dictionary<string, List<Order>>();
-        
-        var vehicleData = response.Response?.SolverResponse?.VehicleData?.VehicleData ?? response?.Response?.SolverInfeasibleResponse?.VehicleData ?? null;
+
+        var vehicleData = response.Response?.SolverResponse?.VehicleData?.VehicleData
+                         ?? response.Response?.SolverInfeasibleResponse?.VehicleData
+                         ?? null;
         if (vehicleData == null || vehicleData.Count == 0)
-        {
             return result;
-        }
 
         foreach (var (vehicleId, routeData) in vehicleData)
         {
-            var order = new Order
-            {
-                OrderId = vehicleId,
-                OrderUpdateId = 0,
-                HeaderId = 0,
-                Timestamp = DateTime.UtcNow,
-                Version = "2.0",
-                Manufacturer = "CuOpt",
-                SerialNumber = vehicleId
-            };
-
             var route = routeData.Route ?? new List<int>();
             var taskIds = routeData.TaskIds ?? new List<string>();
             var taskTypes = routeData.Type ?? new List<string>();
 
-            var nodeCount = Math.Max(route.Count, Math.Max(taskIds.Count, taskTypes.Count));
-            var nodes = new List<Node>(nodeCount);
+            var allNodes = BuildNodesWithActions(route, taskIds, taskTypes, points);
+            var actionIndices = Enumerable.Range(0, allNodes.Count)
+                                          .Where(i => allNodes[i].Actions.Any())
+                                          .ToList();
 
-            var firstActionIndex = -1;
-            for (var i = 0; i < nodeCount; i++)
+            var ordersForVehicle = new List<Order>();
+
+            if (actionIndices.Count == 0)
             {
-                var nodeId = route.Count > i ? route[i].ToString() : $"node-{i}";
-                var taskId = taskIds.Count > i ? taskIds[i] : null;
-                var taskType = taskTypes.Count > i ? taskTypes[i] : null;
-
-                var actionType = ResolveActionType(taskId, taskType);
-                var hasAction = !string.IsNullOrWhiteSpace(actionType);
-
-                var node = new Node
+                // no action => single order, everything released
+                ordersForVehicle.Add(BuildOrderSegment(vehicleId, allNodes, 0, allNodes.Count - 1, null));
+            }
+            else
+            {
+                int start = 0;
+                for (int ai = 0; ai < actionIndices.Count; ai++)
                 {
-                    NodeId = nodeId,
-                    // Node sequences are even to interleave with edges for continuity.
-                    SequenceId = i * 2,
-                    NodeDescription = taskId,
-                };
-
-                // attach coordinates if available (matrix index == point index fallback to point id match)
-                Point? point = null;
-                if (route.Count > i)
-                {
-                    var idx = route[i];
-                    if (idx >= 0 && idx < points.Count)
-                        point = points[idx];
-                    else
-                        point = points.FirstOrDefault(p => p.Id == idx);
-                }
-                if (point != null)
-                {
-                    node.NodePosition = new NodePosition
-                    {
-                        X = point.X ?? 0,
-                        Y = point.Y ?? 0,
-                        MapId = point.MapId?.ToString() ?? "map"
-                    };
+                    int end = actionIndices[ai];
+                    ordersForVehicle.Add(BuildOrderSegment(vehicleId, allNodes, start, end, actionIndices[ai]));
+                    start = end; // next segment starts at this action node
                 }
 
-                if (hasAction)
+                if (start < allNodes.Count - 1)
                 {
-                    node.Actions.Add(new VDA5050Message.Base.Action
-                    {
-                        ActionId = taskId ?? $"action-{i}",
-                        ActionType = actionType!,
-                        BlockingType = BlockingType.HARD,
-                        ActionDescription = taskId
-                    });
-
-                    if (firstActionIndex == -1)
-                    {
-                        firstActionIndex = i;
-                    }
+                    ordersForVehicle.Add(BuildOrderSegment(vehicleId, allNodes, start, allNodes.Count - 1, null));
                 }
-
-                // Released stays true until the first node with an action is encountered.
-                node.Released = firstActionIndex == -1 || i < firstActionIndex;
-
-                nodes.Add(node);
             }
 
-            var edges = new List<Edge>(Math.Max(0, nodes.Count - 1));
-            for (var i = 1; i < nodes.Count; i++)
+            if (!result.TryGetValue(vehicleId, out var existing))
             {
-                var start = nodes[i - 1];
-                var end = nodes[i];
-                var edgeReleased = firstActionIndex == -1 || ((i - 1) < firstActionIndex && i < firstActionIndex);
-
-                edges.Add(new Edge
-                {
-                    EdgeId = $"{start.NodeId}-{end.NodeId}-{i}",
-                    // Edges are interleaved between nodes for continuous sequencing.
-                    SequenceId = (i * 2) - 1,
-                    StartNodeId = start.NodeId,
-                    EndNodeId = end.NodeId,
-                    Released = edgeReleased
-                });
+                result[vehicleId] = ordersForVehicle;
             }
-
-            order.Nodes = nodes;
-            order.Edges = edges;
-
-            if (!result.TryGetValue(vehicleId, out var orderList))
+            else
             {
-                orderList = new List<Order>();
-                result[vehicleId] = orderList;
+                existing.AddRange(ordersForVehicle);
             }
-
-            orderList.Add(order);
         }
 
         return result;
+    }
+
+    private static List<Node> BuildNodesWithActions(
+        List<int> route,
+        List<string> taskIds,
+        List<string> taskTypes,
+        IList<Point> points)
+    {
+        var nodeCount = Math.Max(route.Count, Math.Max(taskIds.Count, taskTypes.Count));
+        var nodes = new List<Node>(nodeCount);
+
+        for (var i = 0; i < nodeCount; i++)
+        {
+            var nodeId = route.Count > i ? route[i].ToString() : $"node-{i}";
+            var taskId = taskIds.Count > i ? taskIds[i] : null;
+            var taskType = taskTypes.Count > i ? taskTypes[i] : null;
+
+            var actionType = ResolveActionType(taskId, taskType);
+            var hasAction = !string.IsNullOrWhiteSpace(actionType);
+
+            var node = new Node
+            {
+                NodeId = nodeId,
+                SequenceId = i * 2, // temp, will be renumbered per order
+                NodeDescription = taskId,
+            };
+
+            Point? point = null;
+            if (route.Count > i)
+            {
+                var idx = route[i];
+                if (idx >= 0 && idx < points.Count)
+                    point = points[idx];
+                else
+                    point = points.FirstOrDefault(p => p.Id == idx);
+            }
+            if (point != null)
+            {
+                node.NodePosition = new NodePosition
+                {
+                    X = point.X ?? 0,
+                    Y = point.Y ?? 0,
+                    MapId = point.MapId?.ToString() ?? "map"
+                };
+            }
+
+            if (hasAction)
+            {
+                node.Actions.Add(new VDA5050Message.Base.Action
+                {
+                    ActionId = taskId ?? $"action-{i}",
+                    ActionType = actionType!,
+                    BlockingType = BlockingType.HARD,
+                    ActionDescription = taskId
+                });
+            }
+
+            nodes.Add(node);
+        }
+
+        return nodes;
+    }
+
+    private static Order BuildOrderSegment(string vehicleId, List<Node> allNodes, int startIdx, int endIdx, int? firstActionIdx)
+    {
+        var order = new Order
+        {
+            OrderId = $"{vehicleId}-seg-{startIdx}-{endIdx}",
+            OrderUpdateId = 0,
+            HeaderId = 0,
+            Timestamp = DateTime.UtcNow,
+            Version = "2.0",
+            Manufacturer = "CuOpt",
+            SerialNumber = vehicleId
+        };
+
+        var segmentNodes = new List<Node>();
+        for (int local = 0, i = startIdx; i <= endIdx; i++, local++)
+        {
+            var clone = DeepCloneNode(allNodes[i]);
+            clone.SequenceId = local * 2;
+
+            if (firstActionIdx.HasValue)
+            {
+                clone.Released = i < firstActionIdx.Value;
+            }
+            else
+            {
+                clone.Released = true; // no action in this segment
+            }
+
+            segmentNodes.Add(clone);
+        }
+
+        var segmentEdges = new List<Edge>();
+        for (int localEdge = 1; localEdge < segmentNodes.Count; localEdge++)
+        {
+            var start = segmentNodes[localEdge - 1];
+            var end = segmentNodes[localEdge];
+
+            bool edgeReleased;
+            if (firstActionIdx.HasValue)
+            {
+                var localAction = firstActionIdx.Value - startIdx;
+                edgeReleased = (localEdge - 1) < localAction && localEdge < localAction;
+            }
+            else
+            {
+                edgeReleased = true;
+            }
+
+            segmentEdges.Add(new Edge
+            {
+                EdgeId = $"{start.NodeId}-{end.NodeId}-{localEdge}",
+                SequenceId = (localEdge * 2) - 1,
+                StartNodeId = start.NodeId,
+                EndNodeId = end.NodeId,
+                Released = edgeReleased
+            });
+        }
+
+        order.Nodes = segmentNodes;
+        order.Edges = segmentEdges;
+        return order;
+    }
+
+    private static Node DeepCloneNode(Node src)
+    {
+        var node = new Node
+        {
+            NodeId = src.NodeId,
+            SequenceId = src.SequenceId,
+            NodeDescription = src.NodeDescription,
+            Released = src.Released,
+            NodePosition = src.NodePosition == null ? null : new NodePosition
+            {
+                X = src.NodePosition.X,
+                Y = src.NodePosition.Y,
+                Theta = src.NodePosition.Theta,
+                AllowedDeviationTheta = src.NodePosition.AllowedDeviationTheta,
+                AllowedDeviationXY = src.NodePosition.AllowedDeviationXY,
+                MapId = src.NodePosition.MapId,
+                MapDescription = src.NodePosition.MapDescription
+            }
+        };
+
+        foreach (var act in src.Actions)
+        {
+            node.Actions.Add(new VDA5050Message.Base.Action
+            {
+                ActionId = act.ActionId,
+                ActionType = act.ActionType,
+                ActionDescription = act.ActionDescription,
+                BlockingType = act.BlockingType,
+                ActionParameters = act.ActionParameters == null
+                    ? null
+                    : act.ActionParameters.Select(p => new ActionParameter { Key = p.Key, Value = p.Value }).ToList()
+            });
+        }
+
+        return node;
     }
 
     private static string? ResolveActionType(string? taskId, string? taskType)
@@ -154,7 +250,7 @@ public static class CuOpt2VDA
         if (string.Equals(taskType, "Depot", StringComparison.OrdinalIgnoreCase))
         {
             // Treat depot type as charge when no explicit taskId hint is present.
-            return "Charge";
+            return "Pick";
         }
 
         return string.IsNullOrWhiteSpace(taskType) ? null : taskType;
