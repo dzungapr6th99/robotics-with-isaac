@@ -114,6 +114,17 @@ vda5050_msgs::msg::ErrorReference VDAMissionClient::CreateErrorReference(
     error_reference.reference_value = reference_value;
     return error_reference;
 }
+
+std::string VDAMissionClient::GetActionState(const std::string & action_id)
+{
+  std::lock_guard<std::mutex> lock(state_mutex_);
+  for (const auto & action_state : agv_state_->action_states) {
+    if (action_state.action_id == action_id) {
+      return action_state.action_status;
+    }
+  }
+  return "UNKNOWN";
+}
 #pragma endregion
 
 #pragma region Navigation function
