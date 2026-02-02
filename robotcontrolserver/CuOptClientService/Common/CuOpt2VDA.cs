@@ -98,7 +98,7 @@ public static class CuOpt2VDA
                 }
 
                 // Released stays true until the first node with an action is encountered.
-                node.Released = firstActionIndex == -1 || i < firstActionIndex;
+                node.Released = firstActionIndex == -1 || i <= firstActionIndex;
 
                 nodes.Add(node);
             }
