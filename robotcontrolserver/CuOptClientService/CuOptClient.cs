@@ -8,6 +8,7 @@ using CuOptClientService.Interfaces;
 using DbObject;
 using ShareMemoryData;
 using VDA5050Message;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CuOptClientService;
 
@@ -122,17 +123,16 @@ public class CuOptClient : ICuOptClient
                 }
             }
         }
-
         return new CuoptVRPRequest
         {
             CostMatrixData = new MatrixData
             {
-                Data = new Dictionary<string, List<List<double>>>
-                {
-                    { "1", costMatrix }
-                }
+                Data = robots.Select(r => r.RobotTypeId).Distinct().ToDictionary(id => id.ToString(), _ => costMatrix)
             },
-            TravelTimeMatrixData =new MatrixData() { Data = new Dictionary<string, List<List<double>>>() { { "1", CuOptBuild.BuildTimeMatrixFromDistance(costMatrix) } } },
+            TravelTimeMatrixData = new MatrixData
+            {
+                Data = robots.Select(r => r.RobotTypeId).Distinct().ToDictionary(id => id.ToString(), _ => CuOptBuild.BuildTimeMatrixFromDistance(costMatrix))
+            },
             FleetData = new FleetData
             {
                 VehicleIds = vehicleIds,
@@ -143,7 +143,7 @@ public class CuOptClient : ICuOptClient
                 VehicleMaxCosts = vehicleMaxCosts,
                 DropReturnTrips = vehicleIds.Select(_ => true).ToList(),
                 SkipFirstTrips = vehicleIds.Select(_ => false).ToList(),
-                VehicleTypes = robots.Select(x=>x.RobotTypeId).ToList()
+                VehicleTypes = robots.Select(x => x.RobotTypeId).ToList()
             },
             TaskData = new TaskData
             {
@@ -177,7 +177,8 @@ public class CuOptClient : ICuOptClient
             var status = await GetRequestStatusAsync(reqId, ct).ConfigureAwait(false);
             last = status;
 
-            if (status == "completed") return;
+            if (status == "completed")
+                return;
             if (status is "failed" or "error" or "cancelled" or "canceled")
                 throw new InvalidOperationException($"cuOpt request failed: status={status}, reqId={reqId}");
 
@@ -231,7 +232,7 @@ public class CuOptClient : ICuOptClient
         msg.Headers.Accept.ParseAdd("application/json");
 
         var json = JsonSerializer.Serialize(request, _json);
-       
+
         var content = new StringContent(json, Encoding.UTF8);
         content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
         msg.Content = content;
