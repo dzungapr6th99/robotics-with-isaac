@@ -150,15 +150,7 @@ public static class CuOpt2VDA
         {
             var clone = DeepCloneNode(allNodes[i]);
             clone.SequenceId = local * 2;
-
-            if (firstActionIdx.HasValue)
-            {
-                clone.Released = i < firstActionIdx.Value;
-            }
-            else
-            {
-                clone.Released = true; // no action in this segment
-            }
+            clone.Released = true; // release all nodes in this order
 
             segmentNodes.Add(clone);
         }
@@ -169,24 +161,13 @@ public static class CuOpt2VDA
             var start = segmentNodes[localEdge - 1];
             var end = segmentNodes[localEdge];
 
-            bool edgeReleased;
-            if (firstActionIdx.HasValue)
-            {
-                var localAction = firstActionIdx.Value - startIdx;
-                edgeReleased = (localEdge - 1) < localAction && localEdge < localAction;
-            }
-            else
-            {
-                edgeReleased = true;
-            }
-
             segmentEdges.Add(new Edge
             {
                 EdgeId = $"{start.NodeId}-{end.NodeId}-{localEdge}",
                 SequenceId = (localEdge * 2) - 1,
                 StartNodeId = start.NodeId,
                 EndNodeId = end.NodeId,
-                Released = edgeReleased
+                Released = true
             });
         }
 
@@ -246,6 +227,10 @@ public static class CuOpt2VDA
                 return "Delivery";
             }
         }
+
+        // ignore walk placeholder actions
+        if (string.Equals(taskType, "w", StringComparison.OrdinalIgnoreCase))
+            return null;
 
         if (string.Equals(taskType, "Depot", StringComparison.OrdinalIgnoreCase))
         {
