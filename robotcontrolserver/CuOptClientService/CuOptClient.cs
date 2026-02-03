@@ -12,13 +12,20 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CuOptClientService;
 
-public class CuOptClient : ICuOptClient
-{
-    private readonly HttpClient _http;
-    private readonly Uri _baseUri;
-    private readonly JsonSerializerOptions _json;
+    public enum CuOptApiMode
+    {
+        Matrix,
+        Graph
+    }
 
-    public CuOptClient(string baseUrl, HttpMessageHandler? handler = null)
+    public class CuOptClient : ICuOptClient
+    {
+        private readonly HttpClient _http;
+        private readonly Uri _baseUri;
+        private readonly JsonSerializerOptions _json;
+        private readonly CuOptApiMode _mode;
+
+    public CuOptClient(string baseUrl, HttpMessageHandler? handler = null, CuOptApiMode mode = CuOptApiMode.Graph)
     {
         _baseUri = new Uri(baseUrl.TrimEnd('/') + "/");
         _http = handler is null ? new HttpClient() : new HttpClient(handler);
@@ -30,6 +37,7 @@ public class CuOptClient : ICuOptClient
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
+        _mode = mode;
     }
 
     /// <summary>
@@ -47,7 +55,9 @@ public class CuOptClient : ICuOptClient
             return new Dictionary<string, List<Order>>();
         }
 
-        var request = BuildRequest(robotList, taskList, pointList, routeList);
+        object request = _mode == CuOptApiMode.Graph
+            ? BuildGraphRequest(robotList, taskList, pointList, routeList)
+            : BuildRequest(robotList, taskList, pointList, routeList);
 
         var reqId = await SubmitCuOptRequest(request, ct).ConfigureAwait(false);
         await WaitUntilCompletedAsync(reqId, TimeSpan.FromSeconds(7)).ConfigureAwait(false);
@@ -161,6 +171,11 @@ public class CuOptClient : ICuOptClient
             }
         };
     }
+
+    private CuOptGraphSolveRequest BuildGraphRequest(List<RobotStatus> robots, List<RobotTask> tasks, List<Point> points, List<Route> routes)
+    {
+        return DTO2CuOpt.CreateGraphSolveRequest(points, routes, robots, tasks, timeLimitSeconds: 1, bidirectional: true);
+    }
     public async Task WaitUntilCompletedAsync(string reqId, TimeSpan maxWait, TimeSpan? pollInterval = null, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(reqId))
@@ -223,7 +238,7 @@ public class CuOptClient : ICuOptClient
         return text;
     }
 
-    private async Task<string> SubmitCuOptRequest(CuoptVRPRequest request, CancellationToken ct = default)
+    private async Task<string> SubmitCuOptRequest(object request, CancellationToken ct = default)
     {
         var url = new Uri("cuopt/request", UriKind.Relative);
         using var msg = new HttpRequestMessage(HttpMethod.Post, url);
